@@ -349,15 +349,28 @@ export default function GamePage() {
       
       const userId = u.id || u.username || u.email;
 
+      const isHostUser = userId === "host@platform.local";
+
+      // The leaderboard is purely a display side panel — nothing needs it
+      // to actually start playing. Fetch it in the background and apply it
+      // whenever it arrives, instead of blocking the page on it.
+      const applyLeaderboard = (lbRes) => {
+        if (!lbRes.ok) return;
+        return lbRes.json().then((lbData) => {
+          setLeaderboard(lbData);
+          const userScores = lbData.overall.filter((e) => e.name === (u.name || u.email));
+          const best = userScores.length > 0 ? Math.max(...userScores.map((e) => e.score)) : 0;
+          setBestScore(best);
+        });
+      };
+      const leaderboardPromise = fetch("/api/leaderboard")
+        .then(applyLeaderboard)
+        .catch((e) => console.error("Failed to fetch leaderboard:", e));
+
       try {
-        const isHostUser = userId === "host@platform.local";
-        // /api/leaderboard and /api/achievements don't depend on the server
-        // date, so kick them off immediately instead of waiting on /api/time
-        // first — only /api/attempts genuinely needs the date. Especially on
-        // Vercel, each of these can hit its own cold-start latency, so
-        // running them in parallel means paying for the slowest one instead
-        // of the sum of all of them.
-        const leaderboardPromise = fetch("/api/leaderboard");
+        // /api/achievements doesn't depend on the server date, so kick it
+        // off immediately instead of waiting on /api/time first — only
+        // /api/attempts genuinely needs the date.
         const achievementsPromise = isHostUser ? null : fetch(`/api/achievements?userId=${userId}`);
 
         const timeRes = await fetch("/api/time");
@@ -365,11 +378,17 @@ export default function GamePage() {
         const serverToday = timeData.dateStr;
         setGlobalDate(serverToday);
 
-        const attemptsPromise = isHostUser ? null : fetch(`/api/attempts?userId=${userId}&date=${serverToday}`);
+        if (isHostUser) {
+          // Host has no attempts/achievements to wait on either — the date
+          // is the only thing gameplay actually needs, so mount right away
+          // and let the leaderboard promise above resolve in the background.
+          setAttempts({ date: serverToday, used: 0 });
+          setMounted(true);
+          return;
+        }
 
-        const [lbRes, attRes, achRes] = await Promise.all([
-          leaderboardPromise,
-          attemptsPromise,
+        const [attRes, achRes] = await Promise.all([
+          fetch(`/api/attempts?userId=${userId}&date=${serverToday}`),
           achievementsPromise,
         ]);
 
@@ -384,21 +403,9 @@ export default function GamePage() {
           setUnlockedAchievements(initialUnlocked);
         }
 
-        if (attRes && attRes.ok) {
+        if (attRes.ok) {
           const attData = await attRes.json();
           setAttempts({ date: serverToday, used: attData.used });
-        } else if (userId === "host@platform.local") {
-          setAttempts({ date: serverToday, used: 0 });
-        }
-
-        if (lbRes.ok) {
-          const lbData = await lbRes.json();
-          setLeaderboard(lbData);
-
-          // Compute best score
-          const userScores = lbData.overall.filter((e) => e.name === (u.name || u.email));
-          const best = userScores.length > 0 ? Math.max(...userScores.map((e) => e.score)) : 0;
-          setBestScore(best);
         }
       } catch (err) {
         console.error("Failed to fetch initial data:", err);
