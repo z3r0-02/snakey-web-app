@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
 
-// Cache the GET response for 15s — the leaderboard is identical for every
-// visitor, so this lets Vercel's edge serve repeat requests instantly
-// instead of round-tripping to Turso every time. POST (submitting a score)
-// is a mutation and is never cached by Next.js regardless of this setting.
-export const revalidate = 15;
+// Cache the GET response for 15s at Vercel's edge — the leaderboard is
+// identical for every visitor, so repeat requests in that window are
+// served instantly instead of round-tripping to Turso. `export const
+// revalidate` alone doesn't reliably produce this for a DB-backed route
+// handler (verified: it left Cache-Control as "max-age=0, must-revalidate"
+// in production), so the header is set explicitly on the response instead.
+// max-age=0 keeps each browser tab always revalidating on navigation;
+// s-maxage=15 is what the shared/CDN cache actually honors.
+const LEADERBOARD_CACHE_HEADER = "public, max-age=0, s-maxage=15, stale-while-revalidate=30";
 
 // scores.created_at is stored via SQLite's own datetime('now'), which comes
 // out as "YYYY-MM-DD HH:MM:SS" in UTC — not ISO 8601. Comparing that against
@@ -87,7 +91,9 @@ export async function GET() {
   try {
     const db = await initDb();
     const leaderboards = await fetchLeaderboards(db);
-    return NextResponse.json(leaderboards);
+    return NextResponse.json(leaderboards, {
+      headers: { "Cache-Control": LEADERBOARD_CACHE_HEADER },
+    });
   } catch (err) {
     console.error("Leaderboard GET error:", err);
     return NextResponse.json(
