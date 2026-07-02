@@ -44,6 +44,7 @@ data/*.db
 # local agent config
 .agents
 .claude
+CLAUDE.md
 
 # typescript
 *.tsbuildinfo
