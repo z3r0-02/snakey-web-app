@@ -1,0 +1,459 @@
+.profilePage {
+  min-height: 100vh;
+  padding: var(--space-md) var(--space-xl);
+  position: relative;
+  z-index: 1;
+}
+
+/* === Nav === */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1460px;
+  margin: 0 auto var(--space-3xl);
+  animation: fadeInUp 0.6s var(--ease-out) both;
+}
+
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.navLogo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--gradient-primary);
+  font-size: 1rem;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.navLink {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  color: var(--text-primary);
+  background: rgba(19, 35, 48, 0.05);
+}
+
+.contentWrapper {
+  display: flex;
+  gap: var(--space-2xl);
+  max-width: 1460px;
+  margin: 0 auto;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+
+
+.leftColumn {
+  flex: 0 0 320px;
+  max-width: 100%;
+  position: relative;
+}
+
+.middleColumn {
+  flex: 0 0 720px;
+  max-width: 100%;
+}
+
+.rightColumn {
+  flex: 0 0 320px;
+  max-width: 100%;
+  position: relative;
+}
+
+@media (max-width: 1400px) {
+  .contentWrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+  .middleColumn { order: 1; width: 100%; max-width: 720px; }
+  .rightColumn { order: 2; width: 100%; max-width: 720px; }
+  .leftColumn { order: 3; width: 100%; max-width: 720px; }
+}
+
+@media (max-width: 768px) {
+  .middleColumn, .leftColumn, .rightColumn {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+
+/* === Profile Card === */
+.card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  overflow: hidden;
+  animation: fadeInUp 0.7s var(--ease-out) 0.1s both;
+  position: relative;
+}
+
+.achievementsCard {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  width: 100%;
+}
+
+@media (min-width: 1401px) {
+  .achievementsCard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+}
+
+@media (max-width: 1400px) {
+  .achievementsCard {
+    width: 100%;
+    position: static;
+  }
+}
+
+.details.achievementsDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-md) var(--space-lg);
+  overflow-y: auto;
+}
+
+/* === Customization === */
+.colorGrid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.colorSwatch {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.colorSwatch:hover {
+  transform: scale(1.05);
+}
+
+.colorSwatchActive {
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.7);
+  transform: scale(1.05);
+}
+
+.titleFlex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.titlePill {
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: rgba(19, 35, 48, 0.03);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.titlePill:hover {
+  background: rgba(19, 35, 48, 0.08);
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.titlePillActive {
+  background: var(--text-accent);
+  color: white;
+  border-color: var(--text-accent);
+  box-shadow: 0 0 8px rgba(61, 220, 132, 0.4);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+/* === Banner === */
+.banner {
+  height: 120px;
+  background: linear-gradient(135deg, rgba(61, 220, 132, 0.2), rgba(45, 192, 111, 0.15), rgba(20, 184, 166, 0.1));
+  position: relative;
+}
+
+.avatarWrap {
+  position: absolute;
+  bottom: -48px;
+  left: var(--space-2xl);
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--on-accent);
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 16px rgba(16, 40, 30, 0.18);
+}
+
+.avatarImg {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-full);
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 16px rgba(16, 40, 30, 0.18);
+  object-fit: cover;
+}
+
+/* === Info Section === */
+.info {
+  padding: calc(var(--space-3xl) + 20px) var(--space-2xl) var(--space-xl);
+}
+
+.name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+}
+
+.email {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.badgeUser {
+  background: rgba(61, 220, 132, 0.14);
+  color: #15803d;
+  border: 1px solid rgba(61, 220, 132, 0.3);
+}
+
+/* === Stats Row === */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border-subtle);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.statItem {
+  padding: var(--space-lg) var(--space-xl);
+  background: var(--bg-secondary);
+  text-align: center;
+  transition: background var(--transition-fast);
+}
+
+.statItem:hover {
+  background: rgba(19, 35, 48, 0.03);
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.statValueAccent {
+  color: var(--accent-primary);
+}
+
+.statLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+/* === Details Section === */
+.details {
+  padding: var(--space-xl) var(--space-2xl) var(--space-2xl);
+}
+
+/* Lock the profile details box to a stable height so toggling edit mode
+   doesn't shrink or expand it (view = 4 text rows, edit = 3 inputs + buttons). */
+.profileDetails {
+  min-height: 350px;
+}
+
+/* Tighter rows in edit mode so the 3 inputs + buttons fit the view-mode height.
+   Compound selector so it overrides .detailRow regardless of source order. */
+.detailRow.editRow {
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
+.detailsTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-md);
+}
+
+.detailRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.detailRow:last-child {
+  border-bottom: none;
+}
+
+.detailLabel {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.detailValue {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* === Responsive === */
+@media (max-width: 540px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .info {
+    padding-left: var(--space-xl);
+    padding-right: var(--space-xl);
+  }
+
+  .details {
+    padding-left: var(--space-xl);
+    padding-right: var(--space-xl);
+  }
+
+  .avatarWrap {
+    left: var(--space-xl);
+  }
+
+  .nav {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .navLinks {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-xs) var(--space-sm);
+  }
+}
+
+.mobileShowMoreBtn {
+  display: none;
+}
+
+@media (max-width: 1400px) {
+  .mobileHidden {
+    display: none !important;
+  }
+  
+  .mobileShowMoreBtn {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    background: rgba(19, 35, 48, 0.05);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .mobileShowMoreBtn:hover {
+    background: rgba(19, 35, 48, 0.1);
+    color: var(--text-primary);
+  }
+}

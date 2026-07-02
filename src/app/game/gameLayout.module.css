@@ -1,0 +1,609 @@
+.gamePage {
+  min-height: 100vh;
+  padding: var(--space-md) var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* === Nav === */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1460px;
+  margin: 0 auto var(--space-3xl);
+  animation: fadeInUp 0.6s var(--ease-out) both;
+}
+
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.navLogo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--gradient-primary);
+  font-size: 1rem;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.navLink {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  color: var(--text-primary);
+  background: rgba(19, 35, 48, 0.05);
+}
+
+/* === Layout === */
+.content {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding-bottom: var(--space-3xl);
+}
+
+/* === Game Section === */
+.gameSection {
+  animation: fadeInUp 0.6s var(--ease-out) 0.1s both;
+  width: 648px;
+}
+
+/* === Hearts === */
+.hearts {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-xs);
+}
+
+.heart {
+  width: 26px;
+  height: 26px;
+  transition: transform var(--transition-fast);
+}
+
+.heart:hover {
+  transform: scale(1.2);
+}
+
+.heartFilled {
+  fill: var(--accent-primary);
+  filter: drop-shadow(0 1px 2px rgba(61, 220, 132, 0.35));
+}
+
+.heartEmpty {
+  fill: none;
+  stroke: rgba(19, 35, 48, 0.18);
+  stroke-width: 1.6;
+}
+
+/* === Canvas Container === */
+.canvasWrap {
+  width: 648px;
+  /* Shrink to fit short/landscape screens too, not just narrow ones, leaving
+     room for the nav, hearts, and controls. */
+  max-width: min(100vw, calc(100vh - 13rem));
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  image-rendering: pixelated;
+}
+
+/* === Countdown (3..2..1) === */
+.countdownOverlay {
+  position: absolute;
+  /* Cover only the dark canvas, not the white frame/padding around it. */
+  inset: var(--space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+  z-index: 10;
+  animation: fadeIn 0.2s var(--ease-out);
+}
+
+.countdownNumber {
+  font-size: 6rem;
+  font-weight: 800;
+  line-height: 1;
+  margin: 0;
+  color: #f8fafc;
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+}
+
+/* === Game Over Overlay === */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11, 14, 23, 0.85);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-lg);
+  z-index: 10;
+  animation: fadeIn 0.3s var(--ease-out);
+}
+
+.overlayTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin-bottom: var(--space-sm);
+}
+
+.overlayScore {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: var(--space-xl);
+}
+
+.overlayScoreValue {
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.playBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-2xl);
+  background: var(--gradient-primary);
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+  color: var(--on-accent);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: 0 2px 8px rgba(61, 220, 132, 0.18);
+}
+
+.playBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(61, 220, 132, 0.26);
+}
+
+.playBtn:active {
+  transform: scale(0.97);
+}
+
+.playBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.noAttempts {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-top: var(--space-md);
+}
+
+.noAttemptsHighlight {
+  color: var(--accent-warm);
+  font-weight: 600;
+}
+
+.hostPrompt {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  margin-bottom: var(--space-lg);
+  line-height: 1.6;
+  max-width: 280px;
+}
+
+.hostPromptLink {
+  color: var(--text-accent);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.hostPromptLink:hover {
+  color: var(--accent-primary-hover);
+  text-decoration: underline;
+}
+
+.controls {
+  margin-top: var(--space-md);
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.controlsKey {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(19, 35, 48, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0 2px;
+}
+
+/* === Leaderboard Section === */
+.leaderboardSection {
+  position: absolute;
+  left: 100%;
+  top: 30px;
+  width: 320px;
+  margin-left: var(--space-2xl);
+  animation: fadeInUp 0.6s var(--ease-out) 0.2s both;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Info panel — mirror of the leaderboard, on the left side of the board.
+   The title now lives inside the box, so start lower to keep the box aligned
+   with the leaderboard's first card. */
+.infoSection {
+  position: absolute;
+  right: 100%;
+  top: 75px;
+  width: 320px;
+  margin-right: var(--space-2xl);
+  animation: fadeInUp 0.6s var(--ease-out) 0.2s both;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Game guide card — never shrinks */
+.guideCard {
+  flex-shrink: 0;
+}
+
+/* Scrollable achievements list inside the desktop info panel. Sizes to its
+   own (short) content by default; page.js measures whether that content
+   would exceed the game board's height and, only then, sets an inline
+   max-height so it clips and scrolls instead of pushing .infoSection taller
+   than the board. Neither this panel nor .leaderboardSection below need
+   their own height cap for that — since each list caps *itself* to the
+   space actually left after its (naturally-sized) siblings, the panel's
+   total height can never exceed the board's by construction. */
+.achList {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Desktop achievements card stretches to fill remaining space */
+.achCard {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Single info box with bullet points (no dividing lines). */
+.infoList {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.infoBullet {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.infoDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  flex-shrink: 0;
+  margin-top: 0.45rem;
+}
+
+.infoEmph {
+  color: var(--text-accent);
+  font-weight: 700;
+}
+
+.lbMainTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.lbCard {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.lbHeader {
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(19, 35, 48, 0.02);
+}
+
+.lbTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: 0;
+}
+
+.lbList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Sizes to its own content (like .lbList) unless page.js measures that it
+   would push the column taller than the game board, in which case it gets
+   an inline max-height and scrolls instead — see the comment on .achList. */
+.lbListScrollable {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+}
+
+.lbItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 5px var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.lbItem:last-child {
+  border-bottom: none;
+}
+
+.lbItem:hover {
+  background: rgba(19, 35, 48, 0.03);
+}
+
+.lbItemHighlight {
+  background: rgba(61, 220, 132, 0.06);
+}
+
+.lbAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.lbAvatarFallback {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  color: var(--on-accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.lbName {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lbScore {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.lbEmpty {
+  padding: var(--space-md) var(--space-lg);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* === Responsive === */
+/* The leaderboard floats to the right of the board, so the side-by-side
+   layout needs ~1340px. Below that, stack it under the board instead. */
+@media (max-width: 1400px) {
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 648px;
+    margin: 0 auto;
+  }
+
+  .gameSection {
+    width: 100%;
+  }
+
+  .leaderboardSection {
+    position: static;
+    margin-left: 0;
+    margin-top: var(--space-2xl);
+    width: 100%;
+  }
+
+  .infoSection {
+    position: static;
+    margin-right: 0;
+    margin-top: var(--space-2xl);
+    width: 100%;
+  }
+
+  .desktopOnly {
+    display: none !important;
+  }
+}
+
+.mobileOnly {
+  display: none;
+}
+
+@media (max-width: 1400px) {
+  .mobileOnly {
+    display: block;
+    margin-top: var(--space-2xl);
+  }
+}
+
+@media (max-width: 540px) {
+  .nav {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .navLinks {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-xs) var(--space-sm);
+  }
+}
+
+/* === Achievement unlock toast === */
+/* Fixed to the viewport (not the side panel) so it's impossible to miss
+   during gameplay, and readable long enough to actually take in the text. */
+@keyframes achievementToastIn {
+  from { opacity: 0; transform: translate(-50%, -16px) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+@keyframes achievementToastOut {
+  from { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  to { opacity: 0; transform: translate(-50%, -16px) scale(0.96); }
+}
+
+.achievementToast {
+  position: fixed;
+  top: var(--space-xl);
+  left: 50%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: min(380px, calc(100vw - 2 * var(--space-lg)));
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--accent-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 32px rgba(61, 220, 132, 0.35), var(--shadow-lg);
+  pointer-events: none;
+  animation:
+    achievementToastIn 0.35s var(--ease-out) both,
+    achievementToastOut 0.35s var(--ease-out) 3.15s both;
+}
+
+.achievementToastIcon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.achievementToastLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+
+.achievementToastName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.achievementToastDesc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}

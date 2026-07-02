@@ -1,0 +1,696 @@
+.authPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-md);
+  position: relative;
+  z-index: 1;
+}
+
+.authStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 440px;
+  padding: var(--space-xl);
+  background: var(--bg-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  animation: fadeInUp 0.7s var(--ease-out) both;
+  position: relative;
+  /* visible so custom dropdown panels can extend past the card edge */
+  overflow: visible;
+}
+
+.authCardWide {
+  max-width: 540px;
+}
+
+.formRow {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.formRow > .formGroup {
+  flex: 1;
+  min-width: 0;
+}
+
+.authCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  background-size: 200% 200%;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  animation: gradient-shift 4s ease infinite;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: var(--space-md);
+  transition: color var(--transition-fast);
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.backLink:hover {
+  color: var(--text-accent);
+}
+
+.authHeader {
+  margin-bottom: var(--space-lg);
+  animation: fadeInUp 0.7s var(--ease-out) 0.1s both;
+}
+
+.authTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-xs);
+}
+
+.authSubtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  animation: fadeInUp 0.7s var(--ease-out) 0.2s both;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  position: relative;
+  padding-bottom: 1.15rem; /* Reserve just enough space for the error message */
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.input {
+  padding: 0.6rem var(--space-lg);
+  background: #ffffff;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+  outline: none;
+  width: 100%;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus {
+  border-color: #a0aec0;
+  background: #ffffff;
+}
+
+.inputError {
+  border-color: #ff3333 !important;
+}
+
+/* === Password show/hide toggle === */
+.passwordWrap {
+  position: relative;
+  width: 100%;
+}
+
+.passwordInput {
+  padding-right: calc(var(--space-lg) + 24px);
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--space-md) - 2px);
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.passwordToggle:hover {
+  color: var(--text-secondary);
+}
+
+.fieldError {
+  color: #ff3333 !important;
+  font-size: 0.82rem !important;
+  position: absolute;
+  bottom: 0;
+  left: 0.2rem; /* slight indent */
+  margin: 0;
+  display: block;
+}
+
+/* === Custom dropdown (gender) & combobox (country) === */
+.dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdownTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: 0.6rem var(--space-lg);
+  background: #ffffff;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.dropdownTrigger:hover {
+  border-color: rgba(19, 35, 48, 0.22);
+}
+
+.dropdownTriggerOpen,
+.dropdownTriggerOpen:hover {
+  border-color: #a0aec0;
+  border-bottom-color: transparent;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  box-shadow: none;
+}
+
+/* Combobox input, when its panel is open — connects seamlessly to the panel */
+.inputOpen,
+.inputOpen:focus {
+  border-color: #a0aec0;
+  border-bottom-color: transparent;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  box-shadow: none;
+}
+
+.dropdownPlaceholder {
+  color: var(--text-muted);
+}
+
+.dropdownChevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.dropdownTriggerOpen .dropdownChevron {
+  transform: rotate(180deg);
+}
+
+.dropdownPanel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  list-style: none;
+  margin: 0;
+  padding: var(--space-xs);
+  background: #ffffff;
+  border: 1px solid #a0aec0;
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: 0 8px 16px rgba(16, 40, 30, 0.08);
+  max-height: 220px;
+  overflow-y: auto;
+  animation: fadeIn 0.12s var(--ease-out);
+}
+
+.dropdownOption {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.dropdownOption:hover {
+  background: rgba(61, 220, 132, 0.1);
+}
+
+.dropdownOptionActive {
+  background: rgba(61, 220, 132, 0.14);
+  color: var(--text-accent);
+  font-weight: 600;
+}
+
+/* === Custom date picker === */
+.dpTextInput {
+  padding-right: calc(var(--space-lg) + 22px);
+}
+
+.dpIconBtn {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--space-md) - 2px);
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.dpIconBtn:hover {
+  color: var(--text-secondary);
+}
+
+.dpPanel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: var(--space-sm);
+  background: #ffffff;
+  border: 1px solid var(--accent-primary);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: 0 8px 16px rgba(16, 40, 30, 0.08);
+  animation: fadeIn 0.12s var(--ease-out);
+}
+
+.dpHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xs);
+}
+
+.dpNav {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.dpNav:hover {
+  background: rgba(19, 35, 48, 0.05);
+}
+
+.dpNav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.dpTitle {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.dpTitle:hover {
+  background: rgba(19, 35, 48, 0.05);
+}
+
+.dpWeekdays,
+.dpGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.dpWeekday {
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+.dpDay {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.dpDay:hover {
+  background: rgba(61, 220, 132, 0.12);
+}
+
+.dpDay:disabled {
+  color: var(--text-muted);
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.dpDaySelected,
+.dpDaySelected:hover {
+  background: var(--accent-primary);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.dpYears {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  max-height: 196px;
+  overflow-y: auto;
+}
+
+.dpYear {
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  padding: 8px 0;
+}
+
+.dpYear:hover {
+  background: rgba(61, 220, 132, 0.12);
+}
+
+.submitBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  background: var(--gradient-primary);
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+  color: var(--on-accent);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: 0 2px 8px rgba(61, 220, 132, 0.18);
+  margin-top: var(--space-lg);
+}
+
+.submitBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(61, 220, 132, 0.26);
+}
+
+.submitBtn:active {
+  transform: scale(0.97);
+}
+
+/* === Success confirmation icon (e.g. password updated) === */
+.successIcon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-lg);
+  box-shadow: 0 6px 20px rgba(61, 220, 132, 0.35);
+  animation: successPop 0.5s var(--ease-out) both;
+}
+
+.successIcon svg {
+  width: 38px;
+  height: 38px;
+}
+
+.successIcon path {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: successCheck 0.4s var(--ease-out) 0.25s forwards;
+}
+
+@keyframes successPop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes successCheck {
+  to { stroke-dashoffset: 0; }
+}
+
+.countdownNote {
+  text-align: center;
+  margin-top: var(--space-md);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.authFooter {
+  text-align: center;
+  margin-top: var(--space-md);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  animation: fadeInUp 0.7s var(--ease-out) 0.3s both;
+}
+
+.authFooterLink {
+  color: var(--text-accent);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+  text-decoration: none;
+}
+
+.authFooterLink:hover {
+  color: var(--accent-primary-hover);
+}
+
+.messageWrapper {
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Login: the password field's reserved error space and the bottom message are
+   never shown at once, so pull the message up into that space to tighten the
+   gap between the password input and the Sign In button. */
+.messageWrapperLogin {
+  margin-top: -1rem;
+}
+
+/* Login reserves the message space above, so the submit button doesn't also
+   add a top gap (which would stack with the reserved area). */
+.submitBtnFlush {
+  margin-top: 0;
+}
+
+.message {
+  padding: 0.35rem var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  line-height: 1.3;
+  text-align: center;
+  width: 100%;
+  animation: fadeIn 0.3s var(--ease-out);
+}
+
+.success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* === Terms & Conditions (outside the card, centered) === */
+.terms {
+  max-width: 460px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  animation: fadeInUp 0.7s var(--ease-out) 0.35s both;
+}
+
+.termsLink {
+  color: var(--text-accent);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.termsLink:hover {
+  color: var(--accent-primary-hover);
+  text-decoration: underline;
+}
+
+/* === Avatar picker (setup page) === */
+.avatarGrid {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.avatarOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.avatarOption:hover {
+  border-color: var(--accent-primary);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 14px rgba(61, 220, 132, 0.15);
+}
+
+.avatarOptionSelected {
+  border-color: var(--accent-primary);
+  background: rgba(61, 220, 132, 0.06);
+  box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.18), 0 4px 14px rgba(61, 220, 132, 0.15);
+  transform: translateY(-3px) scale(1.03);
+}
+
+.avatarOptionSelected::after {
+  content: '✓';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  background: var(--accent-primary);
+  color: var(--on-accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(61, 220, 132, 0.3);
+  animation: fadeIn 0.2s var(--ease-out);
+}
+
+.avatarImg {
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+.avatarLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.avatarOptionSelected .avatarLabel {
+  color: var(--text-accent);
+  font-weight: 600;
+}
+
+.inputHint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: -2px;
+}
+
+@media (max-width: 540px) {
+  .authCard {
+    padding: var(--space-2xl) var(--space-xl);
+    border-radius: var(--radius-lg);
+  }
+
+  .formRow {
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .avatarGrid {
+    gap: var(--space-sm);
+  }
+
+  .avatarOption {
+    padding: var(--space-xs);
+  }
+}
