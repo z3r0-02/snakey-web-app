@@ -56,7 +56,7 @@ export default function About() {
               {t("backToGame")}
             </Link>
           )}
-          {hasSession && (
+          {isLoggedIn && (
             <button onClick={handleLogout} className={styles.navLink} type="button">
               {t("navLogOut")}
             </button>
