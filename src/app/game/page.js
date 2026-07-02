@@ -176,23 +176,31 @@ export default function GamePage() {
       // panels' existing top offsets (see .infoSection/.leaderboardSection).
       const cap = boardSize - 58;
 
-      const capList = (sectionRef, listRef, setMaxHeight, label) => {
+      const capList = (sectionRef, listRef, setMaxHeight) => {
         const section = sectionRef.current;
         const list = listRef.current;
         if (!section || !list) {
-          console.error(`[DIAG] ${label}: no ref yet ` + JSON.stringify({ hasSection: !!section, hasList: !!list, mounted }));
           setMaxHeight(null);
           return;
         }
+        // section.scrollHeight only includes the list's *natural* height if
+        // the list isn't already clamped — once a previous run applied a
+        // max-height, section.scrollHeight reflects that clamped height
+        // instead, corrupting `otherHeight` (can even go negative) and
+        // causing the cap to spuriously clear itself. Measure with any
+        // existing clamp temporarily lifted so `otherHeight` is always
+        // correct, regardless of how many times this has already run.
+        const prevMaxHeight = list.style.maxHeight;
+        list.style.maxHeight = "none";
         const otherHeight = section.scrollHeight - list.scrollHeight;
+        list.style.maxHeight = prevMaxHeight;
         const available = Math.max(60, cap - otherHeight);
         const result = list.scrollHeight > available ? available : null;
-        console.error(`[DIAG] ${label}: measured ` + JSON.stringify({ listScrollHeight: list.scrollHeight, otherHeight, available, result, mounted, itemCount: list.children.length }));
         setMaxHeight(result);
       };
 
-      capList(infoSectionRef, achListRef, setAchListMaxHeight, "achList");
-      capList(leaderboardSectionRef, allTimeListRef, setAllTimeListMaxHeight, "allTimeList");
+      capList(infoSectionRef, achListRef, setAchListMaxHeight);
+      capList(leaderboardSectionRef, allTimeListRef, setAllTimeListMaxHeight);
     }
     recompute();
     window.addEventListener("resize", recompute);

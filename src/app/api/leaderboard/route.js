@@ -1,17 +1,28 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
 
-// Helper to get start boundaries in ISO format
+// scores.created_at is stored via SQLite's own datetime('now'), which comes
+// out as "YYYY-MM-DD HH:MM:SS" in UTC — not ISO 8601. Comparing that against
+// a toISOString() string ("...THH:MM:SS.sssZ") breaks: SQLite compares
+// TEXT columns lexicographically, and the space in the stored format sorts
+// before "T", so any same-day timestamp reads as "less than" today's start
+// and gets excluded. Format boundaries to match the stored format exactly,
+// using UTC throughout so this doesn't depend on the server's local zone.
+function formatForSqlite(date) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} 00:00:00`;
+}
+
 function getTimeBoundaries() {
   const now = new Date();
-  
-  // Start of today (midnight)
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-  
-  // Start of this week (Monday midnight) -> resets after Sunday midnight
-  const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const weekStart = new Date(now.getFullYear(), now.getMonth(), diff).toISOString();
+
+  // Start of today (UTC midnight)
+  const todayStart = formatForSqlite(now);
+
+  // Start of this week (Monday UTC midnight) -> resets after Sunday midnight
+  const day = now.getUTCDay();
+  const diff = now.getUTCDate() - day + (day === 0 ? -6 : 1);
+  const weekStart = formatForSqlite(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), diff)));
 
   return { todayStart, weekStart };
 }
