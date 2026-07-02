@@ -22,11 +22,10 @@ function ResetPasswordForm() {
   const [success, setSuccess] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
-  useEffect(() => {
-    if (!token) {
-      setMessage({ type: "error", text: t("errNoToken") });
-    }
-  }, [token, t]);
+  // No token in the URL is known synchronously on the first render, so this
+  // is derived directly rather than set via an effect (avoids an extra
+  // render / flash of the page with no error before it appears).
+  const displayMessage = message ?? (!token ? { type: "error", text: t("errNoToken") } : null);
 
   // After a successful reset, count down and auto-redirect to login.
   useEffect(() => {
@@ -198,9 +197,9 @@ function ResetPasswordForm() {
         </div>
 
         <div className={`${styles.messageWrapper} ${styles.messageWrapperLogin}`}>
-          {message && (
-            <div className={`${styles.message} ${message.type === "success" ? styles.success : styles.error}`}>
-              {message.text}
+          {displayMessage && (
+            <div className={`${styles.message} ${displayMessage.type === "success" ? styles.success : styles.error}`}>
+              {displayMessage.text}
             </div>
           )}
         </div>
