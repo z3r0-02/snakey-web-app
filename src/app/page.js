@@ -170,20 +170,20 @@ function MainContent() {
       </div>
 
       {view === "landing" && (
-        <div style={{ position: "absolute", bottom: "2rem", left: 0, right: 0, display: "flex", gap: "1rem", justifyContent: "center" }}>
-          <button 
-            onClick={() => switchLang("en")} 
-            style={{ background: "none", border: "none", fontSize: "2rem", cursor: "pointer", opacity: lang === "en" ? 1 : 0.4, transition: "opacity 0.2s" }}
+        <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
+          <button
+            onClick={() => switchLang("en")}
+            style={{ background: "none", border: "none", cursor: "pointer", opacity: lang === "en" ? 1 : 0.4, transition: "opacity 0.2s", lineHeight: 0 }}
             title="English"
           >
-            🇬🇧
+            <span className="fi fi-gb" style={{ fontSize: "1.4rem" }} />
           </button>
-          <button 
-            onClick={() => switchLang("cs")} 
-            style={{ background: "none", border: "none", fontSize: "2rem", cursor: "pointer", opacity: lang === "cs" ? 1 : 0.4, transition: "opacity 0.2s" }}
+          <button
+            onClick={() => switchLang("cs")}
+            style={{ background: "none", border: "none", cursor: "pointer", opacity: lang === "cs" ? 1 : 0.4, transition: "opacity 0.2s", lineHeight: 0 }}
             title="Čeština"
           >
-            🇨🇿
+            <span className="fi fi-cz" style={{ fontSize: "1.4rem" }} />
           </button>
         </div>
       )}

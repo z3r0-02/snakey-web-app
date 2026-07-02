@@ -1,3 +1,4 @@
+import "flag-icons/css/flag-icons.min.css";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/LanguageContext";
 

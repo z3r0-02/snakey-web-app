@@ -10,7 +10,7 @@ import GlobalFlags from "@/components/GlobalFlags";
 import Select from "@/components/auth/Select";
 import CountryCombobox from "@/components/auth/CountryCombobox";
 import DatePicker from "@/components/auth/DatePicker";
-import { COUNTRIES, COUNTRY_FLAGS } from "@/lib/countries";
+import { COUNTRIES, COUNTRY_CODES } from "@/lib/countries";
 import { ACHIEVEMENTS, THEMES } from "@/lib/achievements";
 
 // Profile stats are now fetched from the API instead of localStorage.
@@ -338,9 +338,16 @@ export default function ProfilePage() {
         <div className={styles.info}>
           <h1 className={styles.name}>
             {displayName}
-            {user.country && COUNTRY_FLAGS[user.country] && (
-              <span style={{ fontSize: "1.2rem", marginLeft: "0.5rem" }} title={user.country}>
-                {COUNTRY_FLAGS[user.country]}
+            {user.country && COUNTRY_CODES[user.country] && (
+              <span
+                className={`fi fi-${COUNTRY_CODES[user.country]}`}
+                style={{ marginLeft: "0.5rem", fontSize: "1.2rem", verticalAlign: "middle" }}
+                title={user.country}
+              />
+            )}
+            {user.country === "Other" && (
+              <span style={{ marginLeft: "0.5rem", fontSize: "1.2rem" }} title={user.country}>
+                🌍
               </span>
             )}
           </h1>

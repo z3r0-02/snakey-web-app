@@ -1,7 +1,9 @@
 .landing {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--space-xl);
   min-height: 100vh;
   padding: var(--space-xl);
   position: relative;
@@ -277,9 +279,21 @@
 
 /* === Responsive === */
 @media (max-width: 540px) {
+  .landing {
+    padding: var(--space-md);
+    gap: var(--space-lg);
+  }
+
   .card {
     padding: var(--space-2xl) var(--space-xl);
     border-radius: var(--radius-lg);
+  }
+
+  /* The fixed height (set so switching languages doesn't shift the card on
+     desktop) is too tall for phone viewports and pushes content below the
+     fold. Let the card size to its actual content on mobile instead. */
+  .cardLanding {
+    min-height: 0;
   }
 
   .title {
@@ -294,6 +308,10 @@
 }
 
 @media (max-width: 380px) {
+  .landing {
+    padding: var(--space-sm);
+  }
+
   .card {
     padding: var(--space-xl) var(--space-lg);
   }
