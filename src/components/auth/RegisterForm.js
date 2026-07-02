@@ -334,7 +334,7 @@ export default function RegisterForm({ onBack, onLogin }) {
 
         <button
           type="submit"
-          className={styles.submitBtn}
+          className={`${styles.submitBtn} ${styles.submitBtnFlush}`}
           disabled={loading}
           id="btn-submit-register"
         >
