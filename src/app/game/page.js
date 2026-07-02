@@ -350,21 +350,28 @@ export default function GamePage() {
       const userId = u.id || u.username || u.email;
 
       try {
+        const isHostUser = userId === "host@platform.local";
+        // /api/leaderboard and /api/achievements don't depend on the server
+        // date, so kick them off immediately instead of waiting on /api/time
+        // first — only /api/attempts genuinely needs the date. Especially on
+        // Vercel, each of these can hit its own cold-start latency, so
+        // running them in parallel means paying for the slowest one instead
+        // of the sum of all of them.
+        const leaderboardPromise = fetch("/api/leaderboard");
+        const achievementsPromise = isHostUser ? null : fetch(`/api/achievements?userId=${userId}`);
+
         const timeRes = await fetch("/api/time");
         const timeData = await timeRes.json();
         const serverToday = timeData.dateStr;
         setGlobalDate(serverToday);
 
-        const promises = [fetch("/api/leaderboard")];
-        if (userId !== "host@platform.local") {
-          promises.push(fetch(`/api/attempts?userId=${userId}&date=${serverToday}`));
-          promises.push(fetch(`/api/achievements?userId=${userId}`));
-        }
+        const attemptsPromise = isHostUser ? null : fetch(`/api/attempts?userId=${userId}&date=${serverToday}`);
 
-        const resps = await Promise.all(promises);
-        const lbRes = resps[0];
-        const attRes = resps.length > 1 ? resps[1] : null;
-        const achRes = resps.length > 2 ? resps[2] : null;
+        const [lbRes, attRes, achRes] = await Promise.all([
+          leaderboardPromise,
+          attemptsPromise,
+          achievementsPromise,
+        ]);
 
         if (achRes && achRes.ok) {
           const achData = await achRes.json();

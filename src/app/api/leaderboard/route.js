@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
 
+// Cache the GET response for 15s — the leaderboard is identical for every
+// visitor, so this lets Vercel's edge serve repeat requests instantly
+// instead of round-tripping to Turso every time. POST (submitting a score)
+// is a mutation and is never cached by Next.js regardless of this setting.
+export const revalidate = 15;
+
 // scores.created_at is stored via SQLite's own datetime('now'), which comes
 // out as "YYYY-MM-DD HH:MM:SS" in UTC — not ISO 8601. Comparing that against
 // a toISOString() string ("...THH:MM:SS.sssZ") breaks: SQLite compares

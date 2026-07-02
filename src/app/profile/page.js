@@ -60,9 +60,14 @@ export default function ProfilePage() {
         let attemptsToday = 0;
         let rank = null;
 
-        const [attRes, lbRes] = await Promise.all([
+        // All three are independent (none needs another's result), so run
+        // them in parallel rather than waiting on attempts+leaderboard
+        // before even starting achievements — each hits its own Vercel
+        // function, so this pays for the slowest one instead of the sum.
+        const [attRes, lbRes, achRes] = await Promise.all([
           fetch(`/api/attempts?userId=${userId}&date=${today}`),
-          fetch("/api/leaderboard")
+          fetch("/api/leaderboard"),
+          fetch(`/api/achievements?userId=${userId}`),
         ]);
 
         if (attRes.ok) {
@@ -76,12 +81,11 @@ export default function ProfilePage() {
           const overall = lbData.overall || [];
           const userScores = overall.filter((e) => e.id === u.id || e.name === userName);
           best = userScores.length > 0 ? Math.max(...userScores.map((e) => e.score)) : 0;
-          
+
           const idx = overall.findIndex((e) => e.id === u.id || e.name === userName);
           rank = idx >= 0 ? idx + 1 : null;
         }
 
-        const achRes = await fetch(`/api/achievements?userId=${userId}`);
         if (achRes.ok) {
           const achData = await achRes.json();
           setUnlockedAchievements(new Set(achData.unlocked || []));
