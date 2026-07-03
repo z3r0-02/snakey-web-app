@@ -452,10 +452,14 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
         if (blinkCount >= 5) { // Ends on visible
           clearInterval(blinkInterval);
           draw(true); // Ensure snake is visible during the dramatic pause
-          
+
           // Dramatic pause before Game Over
-          setTimeout(async () => {
-            await onGameOver(scoreRef.current, reason);
+          setTimeout(() => {
+            // Don't await: the score is already known, so the Game Over
+            // screen doesn't need to wait on saving it (attempts/leaderboard
+            // /achievements are several sequential network round-trips) —
+            // let that happen in the background instead of stalling here.
+            onGameOver(scoreRef.current, reason);
             gameStateRef.current = "over";
             setGameState("over");
           }, 500);

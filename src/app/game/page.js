@@ -216,106 +216,97 @@ export default function GamePage() {
   }, [unlockedAchievements, leaderboard, showAllGameAchievements, mounted]);
 
   const handleGameOver = useCallback(
-    async (finalScore, crashReason) => {
+    (finalScore, crashReason) => {
       if (!user) return;
 
       const userId = user.id || user.username || user.email;
-      const today = new Date().toISOString().slice(0, 10);
-
-      // Increment attempt
-      if (!isHost) {
-        try {
-          const attemptRes = await fetch("/api/attempts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, date: globalDate }),
-          });
-          if (attemptRes.ok) {
-            const attemptData = await attemptRes.json();
-            setAttempts({ date: globalDate, used: attemptData.used });
-
-            // Reward Logic Check for 3 daily attempts
-            if (attemptData.used === 3) {
-              try {
-                const rewardRes = await fetch("/api/rewards", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ userId, date: globalDate, finalScore }),
-                });
-                if (rewardRes.ok) {
-                  const rewardData = await rewardRes.json();
-                  if (rewardData.success && rewardData.rewardId) {
-                    setRewardGift(rewardData.rewardId);
-                    setRewardRevealed(false);
-                  }
-                }
-              } catch (e) {
-                console.error("Reward fetch error:", e);
-              }
-            }
-          }
-        } catch (err) {
-          console.error("Failed to update attempts:", err);
-        }
-      } else {
-        // Host uses local session state for attempts
-        setAttempts(prev => ({ ...prev, used: prev.used + 1 }));
-      }
 
       // Update local best score for this session (important for host users)
       setBestScore(prev => Math.max(prev, finalScore));
 
-      // Only save to leaderboard for registered users
-      if (!isHost && finalScore > 0) {
-        try {
-          const lbRes = await fetch("/api/leaderboard", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId,
-              username: user.name || user.email,
-              avatar: user.avatar,
-              score: finalScore,
-            }),
-          });
-          if (lbRes.ok) {
+      if (isHost) {
+        // Host uses local session state for attempts; nothing to save.
+        setAttempts(prev => ({ ...prev, used: prev.used + 1 }));
+        return;
+      }
+
+      // The score is already known by the time this fires (the Game Over
+      // screen doesn't await this call — see useSnakeGame.js), so these
+      // three are independent saves fired in parallel rather than chained
+      // sequential awaits, each hitting Turso on its own.
+      fetch("/api/attempts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, date: globalDate }),
+      })
+        .then(async (attemptRes) => {
+          if (!attemptRes.ok) return;
+          const attemptData = await attemptRes.json();
+          setAttempts({ date: globalDate, used: attemptData.used });
+
+          // Reward check genuinely depends on the attempts result, so it
+          // stays chained after (only fires on the 3rd daily attempt).
+          if (attemptData.used === 3) {
+            fetch("/api/rewards", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId, date: globalDate, finalScore }),
+            })
+              .then(async (rewardRes) => {
+                if (!rewardRes.ok) return;
+                const rewardData = await rewardRes.json();
+                if (rewardData.success && rewardData.rewardId) {
+                  setRewardGift(rewardData.rewardId);
+                  setRewardRevealed(false);
+                }
+              })
+              .catch((e) => console.error("Reward fetch error:", e));
+          }
+        })
+        .catch((err) => console.error("Failed to update attempts:", err));
+
+      if (finalScore > 0) {
+        fetch("/api/leaderboard", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            username: user.name || user.email,
+            avatar: user.avatar,
+            score: finalScore,
+          }),
+        })
+          .then(async (lbRes) => {
+            if (!lbRes.ok) return;
             const lbData = await lbRes.json();
             setLeaderboard(lbData);
 
-            // Update best score
             const userScores = lbData.overall.filter(
               (e) => e.name === (user.name || user.email)
             );
             const best = userScores.length > 0 ? Math.max(...userScores.map((e) => e.score)) : 0;
             setBestScore(best);
-          }
-        } catch (err) {
-          console.error("Failed to save score:", err);
-        }
+          })
+          .catch((err) => console.error("Failed to save score:", err));
       }
 
-      // Evaluate achievements
-      if (!isHost) {
-        try {
-          const achRes = await fetch("/api/achievements/evaluate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, score: finalScore, crashReason, date: globalDate, activeColor: user?.active_snake_color || "default" }),
-          });
-          if (achRes.ok) {
-            const achData = await achRes.json();
-            if (achData.newlyUnlocked && achData.newlyUnlocked.length > 0) {
-              setUnlockedAchievements(prev => {
-                const updated = new Set(prev);
-                achData.newlyUnlocked.forEach(id => updated.add(id));
-                return updated;
-              });
-            }
+      fetch("/api/achievements/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, score: finalScore, crashReason, date: globalDate, activeColor: user?.active_snake_color || "default" }),
+      })
+        .then(async (achRes) => {
+          if (!achRes.ok) return;
+          const achData = await achRes.json();
+          if (achData.newlyUnlocked && achData.newlyUnlocked.length > 0) {
+            setUnlockedAchievements(prev => {
+              const updated = new Set(prev);
+              achData.newlyUnlocked.forEach(id => updated.add(id));
+              return updated;
+            });
           }
-        } catch (e) {
-          console.error("Failed to evaluate achievements:", e);
-        }
-      }
+        })
+        .catch((e) => console.error("Failed to evaluate achievements:", e));
     },
     [user, isHost, globalDate]
   );
