@@ -24,18 +24,18 @@ A modern web application built with **Next.js** and **React**. Snakey is a brows
 ## 📸 Showcase
 
 Landing Page for Logging In, Registering or just enjoying the app as a Guest. Possibility to switch languages as well.
-<img src="./public/demos/landing-demo.gif" alt="Landing page demo" width="1359" />
+<img src="./public/demos/landing-page.png" alt="Landing page demo" width="1359" />
 
-Sign-up and Login Validations
-<img src="./public/demos/validations.gif" alt="Validation demo" width="1359" />
+Registration flow and it's input validations.
 
-Registering an account, choosing a profile picture and a username
-<img src="./public/demos/registration.gif" alt="Registration demo" width="1359" />
+https://github.com/user-attachments/assets/b254de0e-7f03-48df-8aa4-811f0f03d9fa
 
 User profile page, custom country flag, achievments, customizable snake colours, and titles. Profile details are editable.
-<img src="./public/demos/profile.gif" alt="Profile demo" width="1359" />
 
-Gameplay and unlocked achievment animation
-<img src="./public/demos/gameplay.gif" alt="Gameplay demo" width="1359" />
+https://github.com/user-attachments/assets/b9a46671-7d79-41a0-8b15-950f0d59a185
+
+Gameplay, reward and achievment animations.
+
+https://github.com/user-attachments/assets/be3e32b9-8fb3-4b66-9201-a42a0daf3b40
 
 ## E2E Cypress Testing

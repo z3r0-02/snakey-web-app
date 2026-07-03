@@ -23,3 +23,8 @@ data/*.db
 .agents
 .claude
 CLAUDE.md
+
+# README demo videos — kept local only; README links to their
+# GitHub-hosted asset URLs instead (plain <video> tags referencing
+# repo files are stripped by GitHub's markdown renderer)
+public/demos/*.mp4
