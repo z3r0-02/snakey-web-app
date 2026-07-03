@@ -22,17 +22,16 @@ export async function POST(request) {
       return NextResponse.json({ success: false, reason: "not_enough_attempts" });
     }
 
-    // Must have scored >= 500 today (either in a previous run today, or this exact run)
+    // Must have scored >= 400 today (either in a previous run today, or this exact run)
     const scoreRes = await db.execute({
       sql: "SELECT MAX(score) as best FROM scores WHERE user_id = ? AND date(created_at) = date(?)",
       args: [userId, date],
     });
-    
+
     const dbBestToday = scoreRes.rows.length > 0 ? scoreRes.rows[0].best : 0;
     const actualBestToday = Math.max(dbBestToday || 0, finalScore || 0);
-    
-    // TEMPORARILY REDUCED TO 50 FOR TESTING (originally 500)
-    if (actualBestToday < 50) {
+
+    if (actualBestToday < 400) {
       return NextResponse.json({ success: false, reason: "score_too_low" });
     }
 
