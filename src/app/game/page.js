@@ -511,6 +511,16 @@ export default function GamePage() {
                           window.__hostSession = false; // They are no longer a host!
                           setUser(data.user);
                           setShowAuthDropdown(false);
+                          // Re-gate the page behind `mounted` (same as the
+                          // initial load) instead of leaving it rendering
+                          // through the transition: isHost flips the moment
+                          // setUser above commits, instantly un-hiding the
+                          // achievements panel while unlockedAchievements
+                          // still holds the host's (always-empty) data —
+                          // showing every achievement as locked until the
+                          // refresh below fetches the real data for this
+                          // user and re-mounts with it all at once.
+                          setMounted(false);
                           setRefreshKey((prev) => prev + 1);
                         } else {
                           setLoginError(data.error === "Invalid username or password." ? "errInvalidCreds" : data.error);
