@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Snakey
 
-## Getting Started
+A modern web application built with **Next.js** and **React**. Snakey is a browser-based take on the snake game we all grew up with.
 
-First, run the development server:
+## ✨ Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- 🔐 **Secure Authentication:** Full user sign-up and login flows, including encrypted passwords using bcryptjs.
+- 🐍 **Snake game:** Including generated obstacles, special food, implemented Achievments & Leaderboard system
+- 👤 **Custom User Profiles:** Authenticated users have dedicated profile pages to manage their accounts.
+- 🌍 **Bilingual Support:** Users can switch between English and Czech
+- 🎨 **Modern UI:** Clean, intuitive design that looks great on desktop and mobile.
+- ⚡ **Lightning Fast Data:** Uses LibSQL/Turso for a high-performance, edge-ready database.
+- 📱 **Modern & Responsive:** Built on Next.js 16 with a clean UI that looks great on any device.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Built With
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- **[Next.js](https://nextjs.org/)** – The React framework 
+- **[React](https://reactjs.org/)** – Frontend UI library
+- **[LibSQL / Turso](https://turso.tech/)** – SQLite database for fast data storage
+- **[Bcrypt.js](https://www.npmjs.com/package/bcryptjs)** – For secure password hashing and encryption
+- **[CSS Modules](https://nextjs.org/docs/app/building-your-application/styling/css-modules)** – For clean, component-scoped styling
+- **[Vercel](https://vercel.com/)** – Cloud platform for seamless deployment and hosting
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📸 Showcase
 
-## Learn More
+Landing Page for Logging In, Registering or just enjoying the app as a Guest. Possibility to switch languages as well.
+<img src="./public/demos/landing-demo.gif" alt="Landing page demo" width="1359" />
 
-To learn more about Next.js, take a look at the following resources:
+Sign-up and Login Validations
+<img src="./public/demos/validations.gif" alt="Validation demo" width="1359" />
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Registering an account, choosing a profile picture and a username
+<img src="./public/demos/registration.gif" alt="Registration demo" width="1359" />
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+User profile page, custom country flag, achievments, customizable snake colours, and titles. Profile details are editable.
+<img src="./public/demos/profile.gif" alt="Profile demo" width="1359" />
 
-## Deploy on Vercel
+Gameplay and unlocked achievment animation
+<img src="./public/demos/gameplay.gif" alt="Gameplay demo" width="1359" />
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## E2E Cypress Testing
