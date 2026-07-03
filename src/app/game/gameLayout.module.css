@@ -15,7 +15,7 @@
   justify-content: space-between;
   width: 100%;
   max-width: 1460px;
-  margin: 0 auto var(--space-3xl);
+  margin: 0 auto var(--space-xl);
   animation: fadeInUp 0.6s var(--ease-out) both;
 }
 
