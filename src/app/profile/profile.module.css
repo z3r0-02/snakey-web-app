@@ -399,7 +399,20 @@
 /* === Responsive === */
 @media (max-width: 540px) {
   .stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .statItem {
+    padding: var(--space-md) var(--space-xs);
+  }
+
+  .statValue {
+    font-size: 1.15rem;
+  }
+
+  .statLabel {
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
   }
 
   .info {

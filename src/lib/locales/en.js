@@ -210,6 +210,7 @@ const en = {
     title_the_challenger: "the Challenger",
     title_the_cannibal: "the Cannibal",
 
+    color_default: "Default Green",
     color_light_blue: "Light Blue",
     color_pink_glow: "Pink Glow",
     color_red: "Red",

@@ -113,8 +113,9 @@
 .canvasWrap {
   width: 648px;
   /* Shrink to fit short/landscape screens too, not just narrow ones, leaving
-     room for the nav, hearts, and controls. */
-  max-width: min(100vw, calc(100vh - 13rem));
+     room for the nav, hearts, and controls. 100% (not 100vw) so it respects
+     the padding of .gamePage/.content instead of overflowing past it. */
+  max-width: min(100%, calc(100vh - 13rem));
   background: var(--bg-card);
   backdrop-filter: blur(20px);
   border: 1px solid var(--bg-glass-border);
@@ -532,6 +533,23 @@
     display: block;
     margin-top: var(--space-2xl);
   }
+}
+
+/* top/left/width are computed in JS from the toggle button's actual
+   position, clamped to stay on-screen — the button isn't anchored to
+   either screen edge on mobile (nav wraps/centers there), so a pure-CSS
+   anchor like `right: 0` could overflow off the opposite edge depending on
+   where the button ends up. position: fixed pairs with those
+   viewport-relative coordinates. */
+.authDropdown {
+  position: fixed;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
 }
 
 @media (max-width: 540px) {

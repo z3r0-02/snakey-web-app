@@ -87,6 +87,30 @@ export default function GamePage() {
   const [rewardRevealed, setRewardRevealed] = useState(false);
   const [showAuthDropdown, setShowAuthDropdown] = useState(false);
   const dropdownTimeoutRef = useRef(null);
+  const authToggleRef = useRef(null);
+  const [authDropdownStyle, setAuthDropdownStyle] = useState(null);
+
+  // Position the dropdown by measuring the toggle button directly, clamped
+  // to stay fully on-screen, instead of CSS-anchoring it to the button
+  // (which overflows off-screen on mobile, where the button isn't anchored
+  // to either edge and its position varies with nav wrapping/language).
+  useLayoutEffect(() => {
+    if (!showAuthDropdown) return;
+    function computePosition() {
+      const btn = authToggleRef.current;
+      if (!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const width = Math.min(300, window.innerWidth - 24);
+      const left = Math.min(
+        Math.max(rect.right - width, 12),
+        window.innerWidth - width - 12
+      );
+      setAuthDropdownStyle({ top: rect.bottom + 4, left, width });
+    }
+    computePosition();
+    window.addEventListener("resize", computePosition);
+    return () => window.removeEventListener("resize", computePosition);
+  }, [showAuthDropdown]);
 
   // Detect newly unlocked achievements and queue a toast for each.
   useEffect(() => {
@@ -463,27 +487,15 @@ export default function GamePage() {
               onMouseEnter={handleMouseEnterAuth}
               onMouseLeave={handleMouseLeaveAuth}
             >
-              <button 
-                className={styles.navLink} 
+              <button
+                ref={authToggleRef}
+                className={styles.navLink}
                 onClick={() => setShowAuthDropdown(!showAuthDropdown)}
               >
                 {t("logIn")} ▼
               </button>
-              {showAuthDropdown && (
-                <div style={{
-                  position: "absolute",
-                  top: "100%",
-                  right: 0,
-                  marginTop: "0.25rem",
-                  background: "var(--bg-card)",
-                  border: "1px solid var(--border-default)",
-                  borderRadius: "var(--radius-md)",
-                  boxShadow: "var(--shadow-lg)",
-                  display: "flex",
-                  flexDirection: "column",
-                  minWidth: "300px",
-                  zIndex: 100
-                }}>
+              {showAuthDropdown && authDropdownStyle && (
+                <div className={styles.authDropdown} style={authDropdownStyle}>
                   <form 
                     onSubmit={async (e) => {
                       e.preventDefault();

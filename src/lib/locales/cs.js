@@ -210,6 +210,7 @@ const cs = {
     title_the_challenger: "Vyzyvatel",
     title_the_cannibal: "Kanibal",
 
+    color_default: "Výchozí zelená",
     color_light_blue: "Světle modrý",
     color_pink_glow: "Růžový zářící",
     color_red: "Červený",
