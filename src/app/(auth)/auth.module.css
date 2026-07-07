@@ -28,7 +28,6 @@
   box-shadow: var(--shadow-lg), var(--shadow-glow);
   animation: fadeInUp 0.7s var(--ease-out) both;
   position: relative;
-  /* visible so custom dropdown panels can extend past the card edge */
   overflow: visible;
 }
 
@@ -110,7 +109,7 @@
   flex-direction: column;
   gap: var(--space-xs);
   position: relative;
-  padding-bottom: 1.15rem; /* Reserve just enough space for the error message */
+  padding-bottom: 1.15rem;
 }
 
 .label {
@@ -143,7 +142,14 @@
 }
 
 .inputError {
-  border-color: #ff3333 !important;
+  border-color: #ff3333;
+}
+
+/* Compound selector so the error border wins over .input:focus (which sets
+   its own border-color) on specificity honestly, instead of needing
+   !important to force it. */
+.input.inputError:focus {
+  border-color: #ff3333;
 }
 
 /* === Password show/hide toggle === */
@@ -178,16 +184,16 @@
 }
 
 .fieldError {
-  color: #ff3333 !important;
-  font-size: 0.82rem !important;
+  color: #ff3333;
+  font-size: 0.82rem;
   position: absolute;
   bottom: 0;
-  left: 0.2rem; /* slight indent */
+  left: 0.2rem;
   margin: 0;
   display: block;
 }
 
-/* === Custom dropdown (gender) & combobox (country) === */
+/* === custom dropdowns === */
 .dropdown {
   position: relative;
   width: 100%;
@@ -224,7 +230,6 @@
   box-shadow: none;
 }
 
-/* Combobox input, when its panel is open — connects seamlessly to the panel */
 .inputOpen,
 .inputOpen:focus {
   border-color: #a0aec0;
@@ -538,15 +543,10 @@
   width: 100%;
 }
 
-/* Login: the password field's reserved error space and the bottom message are
-   never shown at once, so pull the message up into that space to tighten the
-   gap between the password input and the Sign In button. */
 .messageWrapperLogin {
   margin-top: -1rem;
 }
 
-/* Login reserves the message space above, so the submit button doesn't also
-   add a top gap (which would stack with the reserved area). */
 .submitBtnFlush {
   margin-top: 0;
 }
@@ -571,31 +571,6 @@
   background: rgba(239, 68, 68, 0.1);
   color: #dc2626;
   border: 1px solid rgba(239, 68, 68, 0.25);
-}
-
-/* === Terms & Conditions (outside the card, centered) === */
-.terms {
-  max-width: 460px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 var(--space-md);
-  text-align: center;
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: var(--text-muted);
-  animation: fadeInUp 0.7s var(--ease-out) 0.35s both;
-}
-
-.termsLink {
-  color: var(--text-accent);
-  font-weight: 600;
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.termsLink:hover {
-  color: var(--accent-primary-hover);
-  text-decoration: underline;
 }
 
 /* === Avatar picker (setup page) === */

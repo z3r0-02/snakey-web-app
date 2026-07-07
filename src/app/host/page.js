@@ -12,8 +12,7 @@ export default function HostPage() {
       JSON.stringify({ email: "host@platform.local", name: "Host" })
     );
     // In-memory flag marking an active guest host session. It survives the
-    // client-side navigation below but is wiped by any full page load, which
-    // is how /game knows to bounce a reloaded host back to the landing page.
+    // client-side navigation below but is wiped by any full page load.
     window.__hostSession = true;
     router.replace("/game");
   }, [router]);

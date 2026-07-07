@@ -11,15 +11,12 @@ const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
 const pad = (n) => String(n).padStart(2, "0");
 
-// "YYYY-MM-DD" -> "DD/MM/YYYY"
 function isoToText(iso) {
   if (!iso) return "";
   const [y, m, d] = iso.split("-");
   return `${d}/${m}/${y}`;
 }
 
-// Parse a typed "DD/MM/YYYY" (also accepts . or - separators) into a Date,
-// or null if incomplete/invalid.
 function parseText(str) {
   const parts = str.split(/[^0-9]+/).filter(Boolean);
   if (parts.length !== 3) return null;
@@ -32,7 +29,7 @@ function parseText(str) {
 
 export default function DatePicker({ id, value, onChange, onBlur, hasError, max, placeholder }) {
   const [open, setOpen] = useState(false);
-  const [picking, setPicking] = useState("days"); // "days" | "years"
+  const [picking, setPicking] = useState("days");
   const [text, setText] = useState(isoToText(value));
   const ref = useRef(null);
 
@@ -54,7 +51,7 @@ export default function DatePicker({ id, value, onChange, onBlur, hasError, max,
   }, []);
 
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
-  const startWeekday = (new Date(view.y, view.m, 1).getDay() + 6) % 7; // Mon-first
+  const startWeekday = (new Date(view.y, view.m, 1).getDay() + 6) % 7;
   const cells = [];
   for (let i = 0; i < startWeekday; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
@@ -76,18 +73,17 @@ export default function DatePicker({ id, value, onChange, onBlur, hasError, max,
     if (isDisabled(d)) return;
     const date = new Date(view.y, view.m, d);
     commit(date);
-    // reflect the calendar choice in the text field
     setText(`${pad(d)}/${pad(view.m + 1)}/${view.y}`);
     setOpen(false);
     setPicking("days");
   }
 
   function handleType(e) {
-    let raw = e.target.value.replace(/[^0-9]/g, ""); // strip non-numbers
+    let raw = e.target.value.replace(/[^0-9]/g, "");
     // Auto-insert slashes
     if (raw.length > 2) raw = raw.slice(0, 2) + "/" + raw.slice(2);
     if (raw.length > 5) raw = raw.slice(0, 5) + "/" + raw.slice(5);
-    raw = raw.slice(0, 10); // max length DD/MM/YYYY
+    raw = raw.slice(0, 10);
     
     setText(raw);
     const parsed = parseText(raw);
@@ -95,7 +91,7 @@ export default function DatePicker({ id, value, onChange, onBlur, hasError, max,
       commit(parsed);
       setView({ y: parsed.getFullYear(), m: parsed.getMonth() });
     } else {
-      onChange(""); // incomplete/invalid -> clear the stored value
+      onChange("");
     }
   }
 

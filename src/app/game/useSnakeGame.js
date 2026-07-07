@@ -105,13 +105,13 @@ function generateDailyWalls(dateStr) {
     const familyIndex = shapeDef.family;
     const shape = shapeDef.blocks;
     
-    // Rule: Max 2 of the same shape family
+    // Max 2 of the same shape family
     if (familyCounts[familyIndex] >= 2) continue;
     
-    // Rule: Max 1 total 4-block wall (Family 2)
+    // Max 1 total 4-block wall (Family 2)
     if (familyIndex === 2 && familyCounts[2] >= 1) continue;
 
-    // Random offset, avoiding the very edges since we need a 1-block boundary
+    // Random offset, avoiding the very edges
     const ox = Math.floor(rand() * (GRID_SIZE - 4)) + 1;
     const oy = Math.floor(rand() * (GRID_SIZE - 4)) + 1;
 
@@ -173,13 +173,13 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
     { x: 4, y: 10 },
     { x: 3, y: 10 },
   ]);
-  const wallsRef = useRef([]); // Will be populated on mount
+  const wallsRef = useRef([]);
   const foodRef = useRef({ x: 15, y: 10 });
-  const specialFoodRef = useRef(null); // { x, y, expiresAt }
+  const specialFoodRef = useRef(null);
   const tickMsRef = useRef(START_TICK_MS);
   const scoreRef = useRef(0);
   const [score, setScore] = useState(0);
-  const [gameState, setGameState] = useState("idle"); // idle | starting | playing | over
+  const [gameState, setGameState] = useState("idle");
   const [countdown, setCountdown] = useState(null);
   const gameStateRef = useRef("idle");
   const themeRef = useRef(themeId);
@@ -243,9 +243,7 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
     const sFood = specialFoodRef.current;
     if (sFood) {
       const now = Date.now();
-      
-      // Constant, slightly faster pulsing blink
-      const pulse = (Math.sin(now / 100) + 1) / 2; // 0 to 1
+      const pulse = (Math.sin(now / 100) + 1) / 2;
       const alpha = 0.2 + pulse * 0.8;
 
       ctx.globalAlpha = alpha;
@@ -263,7 +261,6 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
         CELL_SIZE * 3
       );
 
-      // Reset alpha so the solid block doesn't blink
       ctx.globalAlpha = 1.0;
 
       ctx.fillStyle = COLORS.specialFood;
@@ -449,16 +446,11 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
         isVisible = !isVisible;
         draw(isVisible);
         
-        if (blinkCount >= 5) { // Ends on visible
+        if (blinkCount >= 5) {
           clearInterval(blinkInterval);
-          draw(true); // Ensure snake is visible during the dramatic pause
+          draw(true);
 
-          // Dramatic pause before Game Over
           setTimeout(() => {
-            // Don't await: the score is already known, so the Game Over
-            // screen doesn't need to wait on saving it (attempts/leaderboard
-            // /achievements are several sequential network round-trips) —
-            // let that happen in the background instead of stalling here.
             onGameOver(scoreRef.current, reason);
             gameStateRef.current = "over";
             setGameState("over");
@@ -581,6 +573,22 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
     }, 1000);
   }, [disabled, tick, draw, globalDateStr]);
 
+  // Shared direction-change logic, reused by keyboard, D-pad, and swipe input.
+  const changeDirection = useCallback((dirName) => {
+    if (gameStateRef.current !== "playing") return;
+    const dir = directionRef.current;
+    const next = DIRECTION[dirName];
+    if (!next) return;
+
+    const isOpposite =
+      (dir === DIRECTION.UP && next === DIRECTION.DOWN) ||
+      (dir === DIRECTION.DOWN && next === DIRECTION.UP) ||
+      (dir === DIRECTION.LEFT && next === DIRECTION.RIGHT) ||
+      (dir === DIRECTION.RIGHT && next === DIRECTION.LEFT);
+
+    if (!isOpposite) nextDirectionRef.current = next;
+  }, []);
+
   // Keyboard input
   useEffect(() => {
     function handleKey(e) {
@@ -592,38 +600,74 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
         return;
       }
 
-      const dir = directionRef.current;
       switch (e.key) {
         case "ArrowUp":
         case "w":
         case "W":
           e.preventDefault();
-          if (dir !== DIRECTION.DOWN) nextDirectionRef.current = DIRECTION.UP;
+          changeDirection("UP");
           break;
         case "ArrowDown":
         case "s":
         case "S":
           e.preventDefault();
-          if (dir !== DIRECTION.UP) nextDirectionRef.current = DIRECTION.DOWN;
+          changeDirection("DOWN");
           break;
         case "ArrowLeft":
         case "a":
         case "A":
           e.preventDefault();
-          if (dir !== DIRECTION.RIGHT) nextDirectionRef.current = DIRECTION.LEFT;
+          changeDirection("LEFT");
           break;
         case "ArrowRight":
         case "d":
         case "D":
           e.preventDefault();
-          if (dir !== DIRECTION.LEFT) nextDirectionRef.current = DIRECTION.RIGHT;
+          changeDirection("RIGHT");
           break;
       }
     }
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [startGame]);
+  }, [startGame, changeDirection]);
+
+  // Swipe input (mobile) — tracks touch start/end
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let touchStart = null;
+
+    function handleTouchStart(e) {
+      const t = e.touches[0];
+      touchStart = { x: t.clientX, y: t.clientY };
+    }
+
+    function handleTouchEnd(e) {
+      if (!touchStart) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStart.x;
+      const dy = t.clientY - touchStart.y;
+      touchStart = null;
+
+      const SWIPE_THRESHOLD = 24;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_THRESHOLD) return;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        changeDirection(dx > 0 ? "RIGHT" : "LEFT");
+      } else {
+        changeDirection(dy > 0 ? "DOWN" : "UP");
+      }
+    }
+
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: true });
+    canvas.addEventListener("touchend", handleTouchEnd, { passive: true });
+    return () => {
+      canvas.removeEventListener("touchstart", handleTouchStart);
+      canvas.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [changeDirection]);
 
   // Initial draw
   useEffect(() => {
@@ -637,5 +681,5 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
     };
   }, []);
 
-  return { canvasRef, score, gameState, startGame, CANVAS_SIZE, countdown };
+  return { canvasRef, score, gameState, startGame, CANVAS_SIZE, countdown, changeDirection };
 }

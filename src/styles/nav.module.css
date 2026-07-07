@@ -1,0 +1,73 @@
+/* Shared page-nav rules. */
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1460px;
+  margin: 0 auto var(--space-xl);
+  animation: fadeInUp 0.6s var(--ease-out) both;
+}
+
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.navLogo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--gradient-primary);
+  font-size: 1rem;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.navLink {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+@media (max-width: 540px) {
+  .navMobileStack {
+    gap: var(--space-sm);
+  }
+
+  .navLinksMobileWrap {
+    gap: var(--space-xs);
+  }
+
+  .navLinkMobileTight {
+    padding: var(--space-xs) 0.3rem;
+    font-size: 0.7rem;
+  }
+}

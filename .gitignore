@@ -24,7 +24,14 @@ data/*.db
 .claude
 CLAUDE.md
 
-# README demo videos — kept local only; README links to their
-# GitHub-hosted asset URLs instead (plain <video> tags referencing
-# repo files are stripped by GitHub's markdown renderer)
+# README demo videos — kept local only;
+# GitHub-hosted asset URLs instead
 public/demos/*.mp4
+
+# cypress
+cypress/screenshots
+cypress/videos
+cypress/downloads
+
+# README — actively being edited, don't want it accidentally staged
+README.md

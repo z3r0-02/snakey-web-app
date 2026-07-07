@@ -7,6 +7,7 @@ import pageStyles from "@/app/page.module.css";
 import styles from "@/app/(auth)/auth.module.css";
 import PasswordInput from "@/components/auth/PasswordInput";
 import { useTranslation } from "@/lib/LanguageContext";
+import { PASSWORD_ERROR_LOCALE_KEYS } from "@/lib/validation";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -22,9 +23,6 @@ function ResetPasswordForm() {
   const [success, setSuccess] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
-  // No token in the URL is known synchronously on the first render, so this
-  // is derived directly rather than set via an effect (avoids an extra
-  // render / flash of the page with no error before it appears).
   const displayMessage = message ?? (!token ? { type: "error", text: t("errNoToken") } : null);
 
   // After a successful reset, count down and auto-redirect to login.
@@ -77,7 +75,11 @@ function ResetPasswordForm() {
       if (res.ok) {
         setSuccess(true);
       } else {
-        setMessage({ type: "error", text: data.error || t("somethingWentWrong") });
+        // Server-side password re-check failed
+        const text = PASSWORD_ERROR_LOCALE_KEYS[data.error]
+          ? t(PASSWORD_ERROR_LOCALE_KEYS[data.error])
+          : data.error || t("somethingWentWrong");
+        setMessage({ type: "error", text });
         setLoading(false);
       }
     } catch {
@@ -92,12 +94,8 @@ function ResetPasswordForm() {
         className={pageStyles.fadeTransition}
         style={{ display: "flex", flexDirection: "column", minHeight: "440px" }}
       >
-        {/* No back button here either, but keep its space so the centered
-            confirmation stays in the exact same position. */}
         <div aria-hidden="true" style={{ height: "22px", marginBottom: "var(--space-md)" }} />
 
-        {/* Center the confirmation in the remaining space so the card matches
-            the size/feel of the login & reset forms. */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <div className={styles.successIcon}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -139,8 +137,6 @@ function ResetPasswordForm() {
 
   return (
     <div className={pageStyles.fadeTransition}>
-      {/* No back button on this card, but keep its space so the rest of the
-          card stays in the exact same position. */}
       <div aria-hidden="true" style={{ height: "22px", marginBottom: "var(--space-md)" }} />
 
       <div className={styles.authHeader}>
@@ -186,8 +182,6 @@ function ResetPasswordForm() {
           {touched.confirm && errors.confirm && (
             <span className={styles.fieldError}>{errors.confirm}</span>
           )}
-          {/* Invisible spacer matching login's "Forgot password?" link so the
-              button and footer line up identically between the two cards. */}
           <span
             aria-hidden="true"
             style={{ padding: "0.25rem 0 0", fontSize: "0.8rem", alignSelf: "flex-end", visibility: "hidden", userSelect: "none" }}

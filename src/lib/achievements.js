@@ -29,8 +29,8 @@ export const ACHIEVEMENTS = [
   {
     id: "damn_good",
     rewardType: "both",
-    rewardValue: "black", // color
-    rewardValue2: "one_true_king" // title
+    rewardValue: "black",
+    rewardValue2: "one_true_king"
   },
   {
     id: "five_days",
@@ -40,8 +40,8 @@ export const ACHIEVEMENTS = [
   {
     id: "wizard",
     rewardType: "both",
-    rewardValue: "glowing_pattern", // color
-    rewardValue2: "wizard" // title
+    rewardValue: "glowing_pattern",
+    rewardValue2: "wizard"
   },
   {
     id: "try_harder",
@@ -51,8 +51,8 @@ export const ACHIEVEMENTS = [
   {
     id: "cheating",
     rewardType: "both",
-    rewardValue: "yellow", // color
-    rewardValue2: "snake_master" // title
+    rewardValue: "yellow",
+    rewardValue2: "snake_master"
   },
   {
     id: "10_days",

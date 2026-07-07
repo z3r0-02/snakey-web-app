@@ -60,10 +60,6 @@ export default function ProfilePage() {
         let attemptsToday = 0;
         let rank = null;
 
-        // All three are independent (none needs another's result), so run
-        // them in parallel rather than waiting on attempts+leaderboard
-        // before even starting achievements — each hits its own Vercel
-        // function, so this pays for the slowest one instead of the sum.
         const [attRes, lbRes, achRes] = await Promise.all([
           fetch(`/api/attempts?userId=${userId}&date=${today}`),
           fetch("/api/leaderboard"),
@@ -172,7 +168,7 @@ export default function ProfilePage() {
   const unlockedColors = [
     "default",
     ...ACHIEVEMENTS.filter(a => unlockedAchievements.has(a.id) && (a.rewardType === "color" || a.rewardType === "both")).map(a => a.rewardValue),
-    ...Array.from(unlockedAchievements).filter(id => THEMES[id]) // Catch standalone color unlocks
+    ...Array.from(unlockedAchievements).filter(id => THEMES[id])
   ];
   const unlockedTitles = ACHIEVEMENTS.filter(a => unlockedAchievements.has(a.id) && (a.rewardType === "title" || a.rewardType === "both")).map(a => a.rewardType === "both" ? a.rewardValue2 : a.rewardValue);
 
@@ -191,6 +187,7 @@ export default function ProfilePage() {
         <div
           key={colorId}
           className={styles.colorSwatch}
+          data-cy="color-swatch-locked"
           style={{
             background: "transparent",
             border: "1px solid var(--border-subtle)",
@@ -211,10 +208,11 @@ export default function ProfilePage() {
     }
 
     return (
-      <div 
+      <div
         key={colorId}
         className={`${styles.colorSwatch} ${isActive ? styles.colorSwatchActive : ""}`}
-        style={{ 
+        data-cy={isActive ? "color-swatch-active" : "color-swatch"}
+        style={{
           background: theme.pattern === "zebra" ? `linear-gradient(135deg, ${theme.head} 50%, ${theme.body} 50%)` : theme.head,
           boxShadow: theme.glow ? `0 0 12px ${theme.pattern === "zebra" ? "rgba(0,0,0,0.8)" : (colorId === "glow_yellow" ? theme.body : theme.head)}` : "none",
           display: "flex",
@@ -382,8 +380,9 @@ export default function ProfilePage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-md)" }}>
             <h2 className={styles.detailsTitle} style={{ margin: 0 }}>{isEditing ? t("editingProfileTitle") : t("detailsTitle")}</h2>
             {!isEditing && (
-              <button 
+              <button
                 onClick={handleEditClick}
+                data-cy="edit-profile-btn"
                 style={{
                   background: "rgba(19, 35, 48, 0.05)",
                   border: "1px solid var(--border-subtle)",
@@ -457,15 +456,17 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem", justifyContent: "flex-end" }}>
-                <button 
-                  onClick={() => setIsEditing(false)} 
+                <button
+                  onClick={() => setIsEditing(false)}
+                  data-cy="cancel-edit-btn"
                   style={{ padding: "0.5rem 1rem", border: "1px solid var(--border-subtle)", background: "transparent", borderRadius: "var(--radius-sm)", color: "var(--text-primary)", cursor: "pointer", fontSize: "0.85rem" }}
                   disabled={loading}
                 >
                   {t("cancelBtn")}
                 </button>
-                <button 
-                  onClick={handleSave} 
+                <button
+                  onClick={handleSave}
+                  data-cy="save-changes-btn"
                   style={{ padding: "0.5rem 1rem", border: "none", background: "var(--text-accent)", color: "white", borderRadius: "var(--radius-sm)", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
                   disabled={loading}
                 >

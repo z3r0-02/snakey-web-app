@@ -1,23 +1,8 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
 
-// Cache the GET response for 15s at Vercel's edge — the leaderboard is
-// identical for every visitor, so repeat requests in that window are
-// served instantly instead of round-tripping to Turso. `export const
-// revalidate` alone doesn't reliably produce this for a DB-backed route
-// handler (verified: it left Cache-Control as "max-age=0, must-revalidate"
-// in production), so the header is set explicitly on the response instead.
-// max-age=0 keeps each browser tab always revalidating on navigation;
-// s-maxage=15 is what the shared/CDN cache actually honors.
 const LEADERBOARD_CACHE_HEADER = "public, max-age=0, s-maxage=15, stale-while-revalidate=30";
 
-// scores.created_at is stored via SQLite's own datetime('now'), which comes
-// out as "YYYY-MM-DD HH:MM:SS" in UTC — not ISO 8601. Comparing that against
-// a toISOString() string ("...THH:MM:SS.sssZ") breaks: SQLite compares
-// TEXT columns lexicographically, and the space in the stored format sorts
-// before "T", so any same-day timestamp reads as "less than" today's start
-// and gets excluded. Format boundaries to match the stored format exactly,
-// using UTC throughout so this doesn't depend on the server's local zone.
 function formatForSqlite(date) {
   const pad = (n) => String(n).padStart(2, "0");
   return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} 00:00:00`;
@@ -29,7 +14,7 @@ function getTimeBoundaries() {
   // Start of today (UTC midnight)
   const todayStart = formatForSqlite(now);
 
-  // Start of this week (Monday UTC midnight) -> resets after Sunday midnight
+  // Start of this week (Monday UTC midnight)
   const day = now.getUTCDay();
   const diff = now.getUTCDate() - day + (day === 0 ? -6 : 1);
   const weekStart = formatForSqlite(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), diff)));

@@ -16,8 +16,7 @@ export default function CountryCombobox({ id, value, onChange, onBlur, hasError,
   }, []);
 
   const q = value.trim().toLowerCase();
-  // No suggestions until the user types something, and only countries that
-  // *start with* what was typed (e.g. "a" -> Australia, Austria).
+  // No suggestions until the user types something
   const matches = q
     ? options.filter((o) => o.toLowerCase().startsWith(q)).slice(0, 8)
     : [];

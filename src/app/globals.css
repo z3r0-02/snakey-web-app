@@ -2,13 +2,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Color Palette — Fresh Mint (light & minimal) */
+  /* Color Palette */
   --bg-primary: #eef7f1;
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
   --bg-card-hover: #ffffff;
   --bg-glass: rgba(19, 35, 48, 0.03);
   --bg-glass-border: rgba(19, 35, 48, 0.08);
+  --bg-hover: rgba(19, 35, 48, 0.05);
 
   /* Accent Colors */
   --accent-primary: #3ddc84;
@@ -85,8 +86,6 @@
 html {
   height: 100%;
   scroll-behavior: smooth;
-  /* Always reserve space for the scrollbar so centered layouts don't shift
-     when content height changes (e.g. landing <-> register views). */
   scrollbar-gutter: stable;
 }
 

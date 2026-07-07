@@ -7,60 +7,26 @@
 
 /* === Nav === */
 .nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 1460px;
-  margin: 0 auto var(--space-xl);
-  animation: fadeInUp 0.6s var(--ease-out) both;
+  composes: nav from "../../styles/nav.module.css";
+  composes: navMobileStack from "../../styles/nav.module.css";
 }
 
 .navBrand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--text-primary);
-  text-decoration: none;
+  composes: navBrand from "../../styles/nav.module.css";
 }
 
 .navLogo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  background: var(--gradient-primary);
-  font-size: 1rem;
+  composes: navLogo from "../../styles/nav.module.css";
 }
 
 .navLinks {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
+  composes: navLinks from "../../styles/nav.module.css";
+  composes: navLinksMobileWrap from "../../styles/nav.module.css";
 }
 
 .navLink {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  text-decoration: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-  cursor: pointer;
-  background: none;
-  border: none;
-  font-family: var(--font-sans);
-  white-space: nowrap;
-}
-
-.navLink:hover {
-  color: var(--text-primary);
-  background: rgba(19, 35, 48, 0.05);
+  composes: navLink from "../../styles/nav.module.css";
+  composes: navLinkMobileTight from "../../styles/nav.module.css";
 }
 
 .contentWrapper {
@@ -200,7 +166,7 @@
   padding: 0.5rem 0.8rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
-  background: rgba(19, 35, 48, 0.03);
+  background: var(--bg-glass);
   color: var(--text-secondary);
   cursor: pointer;
   font-size: 0.85rem;
@@ -209,7 +175,7 @@
 }
 
 .titlePill:hover {
-  background: rgba(19, 35, 48, 0.08);
+  background: var(--bg-glass-border);
   color: var(--text-primary);
   border-color: var(--text-primary);
 }
@@ -323,7 +289,7 @@
 }
 
 .statItem:hover {
-  background: rgba(19, 35, 48, 0.03);
+  background: var(--bg-glass);
 }
 
 .statValue {
@@ -351,17 +317,8 @@
   padding: var(--space-xl) var(--space-2xl) var(--space-2xl);
 }
 
-/* Lock the profile details box to a stable height so toggling edit mode
-   doesn't shrink or expand it (view = 4 text rows, edit = 3 inputs + buttons). */
 .profileDetails {
   min-height: 350px;
-}
-
-/* Tighter rows in edit mode so the 3 inputs + buttons fit the view-mode height.
-   Compound selector so it overrides .detailRow regardless of source order. */
-.detailRow.editRow {
-  padding-top: 0.7rem;
-  padding-bottom: 0.7rem;
 }
 
 .detailsTitle {
@@ -385,6 +342,11 @@
   border-bottom: none;
 }
 
+.editRow {
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+}
+
 .detailLabel {
   font-size: 0.85rem;
   color: var(--text-secondary);
@@ -398,6 +360,11 @@
 
 /* === Responsive === */
 @media (max-width: 540px) {
+  .profilePage {
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
+  }
+
   .stats {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -428,17 +395,6 @@
   .avatarWrap {
     left: var(--space-xl);
   }
-
-  .nav {
-    flex-direction: column;
-    gap: var(--space-md);
-  }
-
-  .navLinks {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--space-xs) var(--space-sm);
-  }
 }
 
 .mobileShowMoreBtn {
@@ -455,7 +411,7 @@
     width: 100%;
     padding: 0.5rem;
     margin-top: 0.5rem;
-    background: rgba(19, 35, 48, 0.05);
+    background: var(--bg-hover);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     color: var(--text-secondary);
@@ -464,7 +420,7 @@
     cursor: pointer;
     transition: all 0.2s;
   }
-  
+
   .mobileShowMoreBtn:hover {
     background: rgba(19, 35, 48, 0.1);
     color: var(--text-primary);

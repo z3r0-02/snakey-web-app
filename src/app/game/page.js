@@ -11,7 +11,6 @@ import { useTranslation } from "@/lib/LanguageContext";
 import GlobalFlags from "@/components/GlobalFlags";
 
 const MAX_ATTEMPTS = 3;
-// The APIs will now handle leaderboard and attempts instead of these local storage functions.
 
 function getUser() {
   try {
@@ -75,10 +74,6 @@ export default function GamePage() {
   const [unlockedAchievements, setUnlockedAchievements] = useState(new Set());
   const [rewardGift, setRewardGift] = useState(null);
   const [showAllGameAchievements, setShowAllGameAchievements] = useState(false);
-  // Newly-unlocked achievements are announced via a toast (queued, one at a
-  // time) rather than an in-list animation — the list just reflects current
-  // unlock state directly. The queue is the only state; the currently-showing
-  // toast is just its head, derived below (no separate "active" state).
   const [achievementToastQueue, setAchievementToastQueue] = useState([]);
   const activeAchievementToast = achievementToastQueue[0] ?? null;
   const prevUnlockedRef = useRef(new Set());
@@ -90,17 +85,16 @@ export default function GamePage() {
   const authToggleRef = useRef(null);
   const [authDropdownStyle, setAuthDropdownStyle] = useState(null);
 
-  // Position the dropdown by measuring the toggle button directly, clamped
-  // to stay fully on-screen, instead of CSS-anchoring it to the button
-  // (which overflows off-screen on mobile, where the button isn't anchored
-  // to either edge and its position varies with nav wrapping/language).
   useLayoutEffect(() => {
     if (!showAuthDropdown) return;
     function computePosition() {
       const btn = authToggleRef.current;
       if (!btn) return;
       const rect = btn.getBoundingClientRect();
-      const width = Math.min(300, window.innerWidth - 24);
+      const width =
+        window.innerWidth <= 540
+          ? window.innerWidth - 24
+          : Math.min(300, window.innerWidth - 24);
       const left = Math.min(
         Math.max(rect.right - width, 12),
         window.innerWidth - width - 12
@@ -117,9 +111,6 @@ export default function GamePage() {
     const prev = prevUnlockedRef.current;
     const newlyUnlocked = [...unlockedAchievements].filter(id => !prev.has(id));
     if (newlyUnlocked.length > 0) {
-      // unlockedAchievements also holds reward color/title ids (e.g. "novice",
-      // "red") unlocked alongside an achievement — only real achievements
-      // get a toast, so those don't silently eat a turn in the queue.
       const newlyUnlockedAchievements = newlyUnlocked.filter((id) =>
         ACHIEVEMENTS.some((a) => a.id === id)
       );
@@ -130,10 +121,7 @@ export default function GamePage() {
     prevUnlockedRef.current = new Set(unlockedAchievements);
   }, [unlockedAchievements]);
 
-  // Dismiss (pop) the currently-showing toast after 3.5s. Since the active
-  // toast is just achievementToastQueue[0], popping it both hides the
-  // current one and — because the effect re-runs with the new head — starts
-  // the countdown for whatever's queued next, showing them one at a time.
+  // Dismiss (pop) the currently-showing toast after 3.5s.
   useEffect(() => {
     if (achievementToastQueue.length === 0) return;
     const timer = setTimeout(() => {
@@ -165,14 +153,6 @@ export default function GamePage() {
   const canPlay = attemptsLeft > 0;
 
   // --- Info panel (Game Guide + Achievements) and Leaderboard column ---
-  // Both panels should shrink to fit their actual content, but never grow
-  // past the game board's own height. A fixed/flex-grow height can't do both
-  // at once (flex-grow stretches a card to fill leftover space regardless of
-  // how little content it has, which is why "2 scores" still looked full
-  // size) — so instead the *scrollable list inside* each panel gets a
-  // JS-measured max-height, applied only when its natural content would
-  // actually exceed what's left after its (naturally-sized) siblings. See
-  // the effect below and .achList/.lbListScrollable in gameLayout.module.css.
   const infoSectionRef = useRef(null);
   const achListRef = useRef(null);
   const [achListMaxHeight, setAchListMaxHeight] = useState(null);
@@ -183,9 +163,6 @@ export default function GamePage() {
 
   useLayoutEffect(() => {
     function recompute() {
-      // Below this width (matching gameLayout.module.css's own breakpoint),
-      // the panels stack under the board instead of sitting beside it, so
-      // there's no "board height" to cap them to — let them size naturally.
       if (window.innerWidth <= 1400) {
         setAchListMaxHeight(null);
         setAllTimeListMaxHeight(null);
@@ -193,11 +170,8 @@ export default function GamePage() {
       }
 
       const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      // Mirrors .canvasWrap's own sizing formula in gameLayout.module.css —
-      // the board is always a perfect square, so this is also its height.
+      // Mirrors .canvasWrap's own sizing formula in gameLayout.module.css
       const boardSize = Math.min(648, window.innerWidth, window.innerHeight - 13 * remPx);
-      // ~29px of "peek" padding above/below the board's edges, matching the
-      // panels' existing top offsets (see .infoSection/.leaderboardSection).
       const cap = boardSize - 58;
 
       const capList = (sectionRef, listRef, setMaxHeight) => {
@@ -207,13 +181,6 @@ export default function GamePage() {
           setMaxHeight(null);
           return;
         }
-        // section.scrollHeight only includes the list's *natural* height if
-        // the list isn't already clamped — once a previous run applied a
-        // max-height, section.scrollHeight reflects that clamped height
-        // instead, corrupting `otherHeight` (can even go negative) and
-        // causing the cap to spuriously clear itself. Measure with any
-        // existing clamp temporarily lifted so `otherHeight` is always
-        // correct, regardless of how many times this has already run.
         const prevMaxHeight = list.style.maxHeight;
         list.style.maxHeight = "none";
         const otherHeight = section.scrollHeight - list.scrollHeight;
@@ -229,14 +196,6 @@ export default function GamePage() {
     recompute();
     window.addEventListener("resize", recompute);
     return () => window.removeEventListener("resize", recompute);
-    // `mounted` must be a dependency even though it's not read above: the
-    // panels (and their refs) only exist in the DOM once mounted is true
-    // (see `if (!mounted) return null;` below). If that flips true in a
-    // separate render from unlockedAchievements/leaderboard settling — which
-    // client-side navigation from another page makes more likely than a full
-    // reload — this effect could run once against refs that are still null,
-    // then never get a reason to re-run once the real DOM exists, leaving
-    // the achievements/leaderboard list uncapped and overflowing the board.
   }, [unlockedAchievements, leaderboard, showAllGameAchievements, mounted]);
 
   const handleGameOver = useCallback(
@@ -249,15 +208,11 @@ export default function GamePage() {
       setBestScore(prev => Math.max(prev, finalScore));
 
       if (isHost) {
-        // Host uses local session state for attempts; nothing to save.
+        // Host uses local session state for attempts
         setAttempts(prev => ({ ...prev, used: prev.used + 1 }));
         return;
       }
 
-      // The score is already known by the time this fires (the Game Over
-      // screen doesn't await this call — see useSnakeGame.js), so these
-      // three are independent saves fired in parallel rather than chained
-      // sequential awaits, each hitting Turso on its own.
       fetch("/api/attempts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -268,8 +223,6 @@ export default function GamePage() {
           const attemptData = await attemptRes.json();
           setAttempts({ date: globalDate, used: attemptData.used });
 
-          // Reward check genuinely depends on the attempts result, so it
-          // stays chained after (only fires on the 3rd daily attempt).
           if (attemptData.used === 3) {
             fetch("/api/rewards", {
               method: "POST",
@@ -338,14 +291,13 @@ export default function GamePage() {
 
   const userSnakeColor = user?.active_snake_color || "default";
 
-  const { canvasRef, score, gameState, startGame, CANVAS_SIZE, countdown } = useSnakeGame({
+  const { canvasRef, score, gameState, startGame, CANVAS_SIZE, countdown, changeDirection } = useSnakeGame({
     onGameOver: handleGameOver,
     disabled: !canPlay || !globalDate,
     globalDateStr: globalDate,
     themeId: userSnakeColor,
   });
 
-  // Init on mount
   useEffect(() => {
     const initData = async () => {
       const u = getUser();
@@ -366,9 +318,6 @@ export default function GamePage() {
 
       const isHostUser = userId === "host@platform.local";
 
-      // The leaderboard is purely a display side panel — nothing needs it
-      // to actually start playing. Fetch it in the background and apply it
-      // whenever it arrives, instead of blocking the page on it.
       const applyLeaderboard = (lbRes) => {
         if (!lbRes.ok) return;
         return lbRes.json().then((lbData) => {
@@ -383,9 +332,6 @@ export default function GamePage() {
         .catch((e) => console.error("Failed to fetch leaderboard:", e));
 
       try {
-        // /api/achievements doesn't depend on the server date, so kick it
-        // off immediately instead of waiting on /api/time first — only
-        // /api/attempts genuinely needs the date.
         const achievementsPromise = isHostUser ? null : fetch(`/api/achievements?userId=${userId}`);
 
         const timeRes = await fetch("/api/time");
@@ -394,9 +340,6 @@ export default function GamePage() {
         setGlobalDate(serverToday);
 
         if (isHostUser) {
-          // Host has no attempts/achievements to wait on either — the date
-          // is the only thing gameplay actually needs, so mount right away
-          // and let the leaderboard promise above resolve in the background.
           setAttempts({ date: serverToday, used: 0 });
           setMounted(true);
           return;
@@ -410,10 +353,6 @@ export default function GamePage() {
         if (achRes && achRes.ok) {
           const achData = await achRes.json();
           const initialUnlocked = new Set(achData.unlocked || []);
-          // Seed the "previous" baseline with this same set *before* the
-          // state update below triggers the detection effect, so achievements
-          // the user already had before this page load aren't treated as
-          // newly unlocked (and re-toasted) on every reload.
           prevUnlockedRef.current = initialUnlocked;
           setUnlockedAchievements(initialUnlocked);
         }
@@ -437,9 +376,7 @@ export default function GamePage() {
     router.push("/");
   }
 
-  // Open an auth form on the home page. The host session is kept intact so the
-  // form's Back button can return here; the home page shows the form (rather
-  // than redirecting to /game) because of the explicit ?view param.
+  // Open an auth form on the home page.
   function goToAuth(view) {
     router.push(`/?view=${view}`);
   }
@@ -450,15 +387,11 @@ export default function GamePage() {
 
   return (
     <div className={styles.gamePage}>
-      {/* Achievement unlock toast — separate from the in-list glow (which
-          lives in a side panel that's easy to miss during gameplay). Queued
-          one at a time so multiple simultaneous unlocks are all announced,
-          not just the first. */}
       {activeAchievementToast && (() => {
         const ach = ACHIEVEMENTS.find((a) => a.id === activeAchievementToast);
         if (!ach) return null;
         return (
-          <div className={styles.achievementToast} key={activeAchievementToast}>
+          <div className={styles.achievementToast} data-cy="achievement-toast" key={activeAchievementToast}>
             <span className={styles.achievementToastIcon}>🏅</span>
             <div>
               <div className={styles.achievementToastLabel}>
@@ -490,12 +423,13 @@ export default function GamePage() {
               <button
                 ref={authToggleRef}
                 className={styles.navLink}
+                data-cy="nav-login-toggle"
                 onClick={() => setShowAuthDropdown(!showAuthDropdown)}
               >
                 {t("logIn")} ▼
               </button>
               {showAuthDropdown && authDropdownStyle && (
-                <div className={styles.authDropdown} style={authDropdownStyle}>
+                <div className={styles.authDropdown} data-cy="auth-dropdown" style={authDropdownStyle}>
                   <form 
                     onSubmit={async (e) => {
                       e.preventDefault();
@@ -520,18 +454,9 @@ export default function GamePage() {
                         const data = await res.json();
                         if (res.ok) {
                           localStorage.setItem("user", JSON.stringify(data.user));
-                          window.__hostSession = false; // They are no longer a host!
+                          window.__hostSession = false;
                           setUser(data.user);
                           setShowAuthDropdown(false);
-                          // Re-gate the page behind `mounted` (same as the
-                          // initial load) instead of leaving it rendering
-                          // through the transition: isHost flips the moment
-                          // setUser above commits, instantly un-hiding the
-                          // achievements panel while unlockedAchievements
-                          // still holds the host's (always-empty) data —
-                          // showing every achievement as locked until the
-                          // refresh below fetches the real data for this
-                          // user and re-mounts with it all at once.
                           setMounted(false);
                           setRefreshKey((prev) => prev + 1);
                         } else {
@@ -605,7 +530,7 @@ export default function GamePage() {
             </div>
           )}
           {!isHost && (
-            <Link href="/profile" className={styles.navLink}>
+            <Link href="/profile" className={styles.navLink} data-cy="nav-profile">
               {t("navProfile")}
             </Link>
           )}
@@ -613,7 +538,7 @@ export default function GamePage() {
             {t("navAboutUs")}
           </Link>
           {!isHost && (
-            <button className={styles.navLink} onClick={handleLogout}>
+            <button className={styles.navLink} data-cy="nav-logout" onClick={handleLogout}>
               {t("navLogOut")}
             </button>
           )}
@@ -622,7 +547,6 @@ export default function GamePage() {
       </nav>
 
       <div className={styles.content}>
-        {/* Info panel (left side, mirrors the leaderboard) */}
         <div className={styles.infoSection} ref={infoSectionRef}>
           <div className={`${styles.lbCard} ${styles.guideCard}`}>
             <div className={styles.lbHeader}>
@@ -654,7 +578,6 @@ export default function GamePage() {
             </ul>
           </div>
 
-          {/* Achievements (below game guide) — desktop only, scrollable */}
           {!isHost && (
             <div className={`${styles.lbCard} ${styles.achCard} ${styles.desktopOnly}`}>
               <div className={styles.lbHeader}>
@@ -693,6 +616,7 @@ export default function GamePage() {
                 <svg
                   key={i}
                   className={`${styles.heart} ${filled ? styles.heartFilled : styles.heartEmpty}`}
+                  data-cy={filled ? "heart-filled" : "heart-empty"}
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
@@ -812,6 +736,48 @@ export default function GamePage() {
                     </div>
                   )
                 )}
+              </div>
+            )}
+
+            {/* Touch D-pad (mobile only) */}
+            {gameState === "playing" && (
+              <div className={styles.dpad}>
+                <button
+                  type="button"
+                  className={`${styles.dpadBtn} ${styles.dpadUp}`}
+                  data-cy="dpad-up"
+                  aria-label={t("controlsPrefix")}
+                  onTouchStart={(e) => { e.preventDefault(); changeDirection("UP"); }}
+                >
+                  &lt;
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.dpadBtn} ${styles.dpadLeft}`}
+                  data-cy="dpad-left"
+                  aria-label={t("controlsPrefix")}
+                  onTouchStart={(e) => { e.preventDefault(); changeDirection("LEFT"); }}
+                >
+                  &lt;
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.dpadBtn} ${styles.dpadRight}`}
+                  data-cy="dpad-right"
+                  aria-label={t("controlsPrefix")}
+                  onTouchStart={(e) => { e.preventDefault(); changeDirection("RIGHT"); }}
+                >
+                  &gt;
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.dpadBtn} ${styles.dpadDown}`}
+                  data-cy="dpad-down"
+                  aria-label={t("controlsPrefix")}
+                  onTouchStart={(e) => { e.preventDefault(); changeDirection("DOWN"); }}
+                >
+                  &gt;
+                </button>
               </div>
             )}
           </div>

@@ -26,8 +26,6 @@ function MainContent() {
       const wantsForm = requested === "login" || requested === "register";
 
       const user = localStorage.getItem("user");
-      // If user is already logged in (and not a host guest session), redirect to game,
-      // UNLESS they explicitly want to see the login/register forms
       if (user && !wantsForm) {
         const u = JSON.parse(user);
         if (u.email !== "host@platform.local") {
@@ -56,20 +54,15 @@ function MainContent() {
   }
 
   function handleBack() {
-    // If we got here from the game (host session still in localStorage), return
-    // to the game — this works even after a reload, where router.back() wouldn't.
     if (fromExternal) {
       try {
         const u = JSON.parse(localStorage.getItem("user") || "null");
         if (u && u.email === "host@platform.local") {
-          // Re-arm the in-memory host flag (lost on reload) so the game page
-          // accepts the host instead of bouncing back here.
           window.__hostSession = true;
           router.push("/game");
           return;
         }
       } catch {
-        // ignore and fall through to the landing view
       }
     }
     setFromExternal(false);
@@ -83,7 +76,6 @@ function MainContent() {
       <div className={`${styles.card} ${view !== "landing" ? styles.cardWide : styles.cardLanding}`}>
         {view === "landing" && (
           <div className={styles.fadeTransition}>
-            {/* Logo */}
             <div style={{ marginBottom: "var(--space-xl)", display: "flex", justifyContent: "center" }}>
               <Image 
                 src="/dragon_logo.png" 
@@ -175,6 +167,7 @@ function MainContent() {
             onClick={() => switchLang("en")}
             style={{ background: "none", border: "none", cursor: "pointer", opacity: lang === "en" ? 1 : 0.4, transition: "opacity 0.2s", lineHeight: 0 }}
             title="English"
+            data-cy="lang-en"
           >
             <span className="fi fi-gb" style={{ fontSize: "1.4rem" }} />
           </button>
@@ -182,6 +175,7 @@ function MainContent() {
             onClick={() => switchLang("cs")}
             style={{ background: "none", border: "none", cursor: "pointer", opacity: lang === "cs" ? 1 : 0.4, transition: "opacity 0.2s", lineHeight: 0 }}
             title="Čeština"
+            data-cy="lang-cs"
           >
             <span className="fi fi-cz" style={{ fontSize: "1.4rem" }} />
           </button>

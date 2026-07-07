@@ -10,60 +10,26 @@
 
 /* === Nav === */
 .nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 1460px;
-  margin: 0 auto var(--space-xl);
-  animation: fadeInUp 0.6s var(--ease-out) both;
+  composes: nav from "../../styles/nav.module.css";
+  composes: navMobileStack from "../../styles/nav.module.css";
 }
 
 .navBrand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--text-primary);
-  text-decoration: none;
+  composes: navBrand from "../../styles/nav.module.css";
 }
 
 .navLogo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  background: var(--gradient-primary);
-  font-size: 1rem;
+  composes: navLogo from "../../styles/nav.module.css";
 }
 
 .navLinks {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
+  composes: navLinks from "../../styles/nav.module.css";
+  composes: navLinksMobileWrap from "../../styles/nav.module.css";
 }
 
 .navLink {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  text-decoration: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-  cursor: pointer;
-  background: none;
-  border: none;
-  font-family: var(--font-sans);
-  white-space: nowrap;
-}
-
-.navLink:hover {
-  color: var(--text-primary);
-  background: rgba(19, 35, 48, 0.05);
+  composes: navLink from "../../styles/nav.module.css";
+  composes: navLinkMobileTight from "../../styles/nav.module.css";
 }
 
 /* === Layout === */
@@ -112,9 +78,6 @@
 /* === Canvas Container === */
 .canvasWrap {
   width: 648px;
-  /* Shrink to fit short/landscape screens too, not just narrow ones, leaving
-     room for the nav, hearts, and controls. 100% (not 100vw) so it respects
-     the padding of .gamePage/.content instead of overflowing past it. */
   max-width: min(100%, calc(100vh - 13rem));
   background: var(--bg-card);
   backdrop-filter: blur(20px);
@@ -133,10 +96,50 @@
   image-rendering: pixelated;
 }
 
+/* === Touch D-pad (mobile/touch only) === */
+.dpad {
+  display: none;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .dpad {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+}
+
+.dpadBtn {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(19, 35, 48, 0.45);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  transition: color var(--transition-fast);
+}
+
+.dpadBtn:active {
+  color: var(--text-primary);
+}
+
+.dpadUp { top: 2px; left: 50%; transform: translateX(-50%) rotate(90deg); }
+.dpadDown { bottom: 2px; left: 50%; transform: translateX(-50%) rotate(90deg); }
+.dpadLeft { left: 2px; top: 50%; transform: translateY(-50%); }
+.dpadRight { right: 2px; top: 50%; transform: translateY(-50%); }
+
 /* === Countdown (3..2..1) === */
 .countdownOverlay {
   position: absolute;
-  /* Cover only the dark canvas, not the white frame/padding around it. */
   inset: var(--space-lg);
   display: flex;
   align-items: center;
@@ -273,7 +276,7 @@
 .controlsKey {
   display: inline-block;
   padding: 2px 8px;
-  background: rgba(19, 35, 48, 0.05);
+  background: var(--bg-hover);
   border: 1px solid var(--border-subtle);
   border-radius: 4px;
   font-family: var(--font-mono);
@@ -295,9 +298,6 @@
   gap: var(--space-md);
 }
 
-/* Info panel — mirror of the leaderboard, on the left side of the board.
-   The title now lives inside the box, so start lower to keep the box aligned
-   with the leaderboard's first card. */
 .infoSection {
   position: absolute;
   right: 100%;
@@ -315,14 +315,7 @@
   flex-shrink: 0;
 }
 
-/* Scrollable achievements list inside the desktop info panel. Sizes to its
-   own (short) content by default; page.js measures whether that content
-   would exceed the game board's height and, only then, sets an inline
-   max-height so it clips and scrolls instead of pushing .infoSection taller
-   than the board. Neither this panel nor .leaderboardSection below need
-   their own height cap for that — since each list caps *itself* to the
-   space actually left after its (naturally-sized) siblings, the panel's
-   total height can never exceed the board's by construction. */
+/* Scrollable achievements list inside the desktop info panel. */
 .achList {
   overflow-y: auto;
   flex: 1;
@@ -412,8 +405,7 @@
 }
 
 /* Sizes to its own content (like .lbList) unless page.js measures that it
-   would push the column taller than the game board, in which case it gets
-   an inline max-height and scrolls instead — see the comment on .achList. */
+   would push the column taller than the game board. */
 .lbListScrollable {
   list-style: none;
   padding: 0;
@@ -489,8 +481,6 @@
 }
 
 /* === Responsive === */
-/* The leaderboard floats to the right of the board, so the side-by-side
-   layout needs ~1340px. Below that, stack it under the board instead. */
 @media (max-width: 1400px) {
   .content {
     display: flex;
@@ -535,12 +525,6 @@
   }
 }
 
-/* top/left/width are computed in JS from the toggle button's actual
-   position, clamped to stay on-screen — the button isn't anchored to
-   either screen edge on mobile (nav wraps/centers there), so a pure-CSS
-   anchor like `right: 0` could overflow off the opposite edge depending on
-   where the button ends up. position: fixed pairs with those
-   viewport-relative coordinates. */
 .authDropdown {
   position: fixed;
   background: var(--bg-card);
@@ -553,21 +537,14 @@
 }
 
 @media (max-width: 540px) {
-  .nav {
-    flex-direction: column;
-    gap: var(--space-md);
-  }
-
-  .navLinks {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--space-xs) var(--space-sm);
+  .gamePage {
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
   }
 }
 
 /* === Achievement unlock toast === */
-/* Fixed to the viewport (not the side panel) so it's impossible to miss
-   during gameplay, and readable long enough to actually take in the text. */
+/* Fixed to the viewport, impossible to miss during gameplay. */
 @keyframes achievementToastIn {
   from { opacity: 0; transform: translate(-50%, -16px) scale(0.96); }
   to { opacity: 1; transform: translate(-50%, 0) scale(1); }

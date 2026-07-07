@@ -15,7 +15,7 @@ export async function POST(request) {
 
     const db = await initDb();
 
-    // Look up user — we do NOT reveal whether the email exists
+    // Look up user
     const result = await db.execute({
       sql: "SELECT id, first_name FROM users WHERE email = ?",
       args: [email],
@@ -72,11 +72,7 @@ export async function POST(request) {
       });
     }
 
-    // Always return success to prevent user enumeration
-    return NextResponse.json(
-      { message: "If an account with that email exists, a reset link has been sent." },
-      { status: 200 }
-    );
+    return NextResponse.json({}, { status: 200 });
   } catch (err) {
     console.error("Forgot password error:", err);
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });

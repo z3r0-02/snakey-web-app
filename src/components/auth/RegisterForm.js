@@ -10,7 +10,7 @@ import TermsModal from "../TermsModal";
 import PasswordInput from "./PasswordInput";
 import { useTranslation } from "@/lib/LanguageContext";
 import { COUNTRIES } from "@/lib/countries";
-import { isValidEmail } from "@/lib/validation";
+import { isValidEmail, PASSWORD_ERROR_LOCALE_KEYS } from "@/lib/validation";
 
 export default function RegisterForm({ onBack, onLogin }) {
   const router = useRouter();
@@ -129,6 +129,10 @@ export default function RegisterForm({ onBack, onLogin }) {
         // Duplicate email — show a translated message inline under the field.
         setServerErrors((s) => ({ ...s, email: t("errEmailExists") }));
         setTouched((prev) => ({ ...prev, email: true }));
+        setLoading(false);
+      } else if (data.error && PASSWORD_ERROR_LOCALE_KEYS[data.error]) {
+        setServerErrors((s) => ({ ...s, password: t(PASSWORD_ERROR_LOCALE_KEYS[data.error]) }));
+        setTouched((prev) => ({ ...prev, password: true }));
         setLoading(false);
       } else if (data.error && /email/i.test(data.error)) {
         // Any other email-related server error.

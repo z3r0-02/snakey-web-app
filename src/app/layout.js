@@ -13,7 +13,6 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <LanguageProvider>
-          {/* Floating background orbs */}
           <div className="orb orb-1" aria-hidden="true"></div>
           <div className="orb orb-2" aria-hidden="true"></div>
           <div className="orb orb-3" aria-hidden="true"></div>

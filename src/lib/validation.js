@@ -4,16 +4,22 @@ export function isValidEmail(email) {
   return EMAIL_REGEX.test(email);
 }
 
-// Returns an error message if the password is invalid, or null if it's valid.
+export const PASSWORD_ERROR_CODES = {
+  TOO_SHORT: "PASSWORD_TOO_SHORT",
+  MISSING_UPPERCASE: "PASSWORD_MISSING_UPPERCASE",
+  MISSING_NUMBER: "PASSWORD_MISSING_NUMBER",
+};
+
+// Each code to the locale key.
+export const PASSWORD_ERROR_LOCALE_KEYS = {
+  [PASSWORD_ERROR_CODES.TOO_SHORT]: "errPassShort",
+  [PASSWORD_ERROR_CODES.MISSING_UPPERCASE]: "errPassUpper",
+  [PASSWORD_ERROR_CODES.MISSING_NUMBER]: "errPassNum",
+};
+
 export function getPasswordError(password) {
-  if (password.length < 8) {
-    return "Password must be at least 8 characters.";
-  }
-  if (!/[A-Z]/.test(password)) {
-    return "Password must contain at least one uppercase letter.";
-  }
-  if (!/[0-9]/.test(password)) {
-    return "Password must contain at least one number.";
-  }
+  if (password.length < 8) return PASSWORD_ERROR_CODES.TOO_SHORT;
+  if (!/[A-Z]/.test(password)) return PASSWORD_ERROR_CODES.MISSING_UPPERCASE;
+  if (!/[0-9]/.test(password)) return PASSWORD_ERROR_CODES.MISSING_NUMBER;
   return null;
 }

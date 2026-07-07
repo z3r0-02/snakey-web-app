@@ -30,41 +30,43 @@ export default function TermsModal({ onClose }) {
 
   return createPortal(
     <div className={`${styles.overlay} ${isClosing ? styles.overlayClosing : ""}`} onClick={handleClose}>
-      <div className={`${styles.modal} ${isClosing ? styles.modalClosing : ""}`} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.modalWrap} onClick={(e) => e.stopPropagation()}>
         <button onClick={handleClose} className={styles.closeBtn} aria-label="Close">
           ✕
         </button>
 
-        <h1 className={styles.title}>{t("termsModalTitle")}</h1>
-        <p className={styles.updated}>{t("termsUpdated")}</p>
+        <div className={`${styles.modal} ${isClosing ? styles.modalClosing : ""}`}>
+          <h1 className={styles.title}>{t("termsModalTitle")}</h1>
+          <p className={styles.updated}>{t("termsUpdated")}</p>
 
-        <section className={styles.section}>
-          <h2 className={styles.heading}>{t("termsH1")}</h2>
-          <p>
-            {t("termsP1")}
-          </p>
-        </section>
+          <section className={styles.section}>
+            <h2 className={styles.heading}>{t("termsH1")}</h2>
+            <p>
+              {t("termsP1")}
+            </p>
+          </section>
 
-        <section className={styles.section}>
-          <h2 className={styles.heading}>{t("termsH2")}</h2>
-          <p>
-            {t("termsP2")}
-          </p>
-        </section>
+          <section className={styles.section}>
+            <h2 className={styles.heading}>{t("termsH2")}</h2>
+            <p>
+              {t("termsP2")}
+            </p>
+          </section>
 
-        <section className={styles.section}>
-          <h2 className={styles.heading}>{t("termsH3")}</h2>
-          <p>
-            {t("termsP3")}
-          </p>
-        </section>
+          <section className={styles.section}>
+            <h2 className={styles.heading}>{t("termsH3")}</h2>
+            <p>
+              {t("termsP3")}
+            </p>
+          </section>
 
-        <section className={styles.section}>
-          <h2 className={styles.heading}>{t("termsH4")}</h2>
-          <p>
-            {t("termsP4")}
-          </p>
-        </section>
+          <section className={styles.section}>
+            <h2 className={styles.heading}>{t("termsH4")}</h2>
+            <p>
+              {t("termsP4")}
+            </p>
+          </section>
+        </div>
       </div>
     </div>,
     document.body

@@ -10,9 +10,7 @@
   z-index: 1;
 }
 
-/* === Terms text (sits under the card on the register view) ===
-   Absolutely positioned just below the card so it doesn't affect the
-   card's vertical centering — the card stays centered like on landing. */
+/* === Terms text === */
 .terms {
   position: absolute;
   top: 100%;
@@ -60,8 +58,7 @@
   transition: max-width 0.4s var(--ease-out);
 }
 
-/* Keep the landing card the same height across languages (the English text
-   wraps to the most lines, so pin to its height). */
+/* Keep the landing card the same height across languages. */
 .cardLanding {
   min-height: 720px;
 }
@@ -69,9 +66,7 @@
 .cardWide {
   max-width: 540px;
   padding: var(--space-xl);
-  text-align: left; /* auth forms are left-aligned */
-  /* Keep the single-column auth cards (login / forgot / reset) the same height
-     so switching between them is seamless. Register is taller and unaffected. */
+  text-align: left;
   min-height: 506px;
 }
 
@@ -289,9 +284,6 @@
     border-radius: var(--radius-lg);
   }
 
-  /* The fixed height (set so switching languages doesn't shift the card on
-     desktop) is too tall for phone viewports and pushes content below the
-     fold. Let the card size to its actual content on mobile instead. */
   .cardLanding {
     min-height: 0;
   }
@@ -303,7 +295,6 @@
   .subtitle {
     font-size: 0.9rem;
     width: 100%;
-    white-space: normal !important;
   }
 }
 
