@@ -6,21 +6,18 @@ import styles from "@/app/(auth)/auth.module.css";
 import Select from "./Select";
 import CountryCombobox from "./CountryCombobox";
 import DatePicker from "./DatePicker";
-import TermsModal from "../TermsModal";
+
 import PasswordInput from "./PasswordInput";
 import { useTranslation } from "@/lib/LanguageContext";
 import { COUNTRIES } from "@/lib/countries";
-import { isValidEmail, PASSWORD_ERROR_LOCALE_KEYS } from "@/lib/validation";
+import { isValidEmail, isLettersOnly, PASSWORD_ERROR_LOCALE_KEYS } from "@/lib/validation";
+import { GENDER_OPTIONS, REDIRECT_DELAY_MS } from "@/lib/constants";
 
 export default function RegisterForm({ onBack, onLogin }) {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const GENDERS = [
-    { value: "female", label: t("genderFemale") },
-    { value: "male", label: t("genderMale") },
-    { value: "undisclosed", label: t("genderUndisclosed") },
-  ];
+  const GENDERS = GENDER_OPTIONS.map((o) => ({ value: o.value, label: t(o.labelKey) }));
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -31,7 +28,7 @@ export default function RegisterForm({ onBack, onLogin }) {
     password: "",
     confirmPassword: "",
   });
-  const [showTerms, setShowTerms] = useState(false);
+
   const [touched, setTouched] = useState({});
   const [serverErrors, setServerErrors] = useState({});
   const [message, setMessage] = useState(null);
@@ -74,7 +71,7 @@ export default function RegisterForm({ onBack, onLogin }) {
     return (e) => {
       let val = e.target.value;
       if (field === "firstName" || field === "lastName") {
-        if (!/^[a-zA-Z\u00C0-\u017F\s]*$/.test(val)) return;
+        if (!isLettersOnly(val)) return;
       }
       if (serverErrors[field]) {
         setServerErrors((s) => ({ ...s, [field]: undefined }));
@@ -124,7 +121,7 @@ export default function RegisterForm({ onBack, onLogin }) {
         const userData = { ...data.user, _pendingSetup: true };
         localStorage.setItem("user", JSON.stringify(userData));
         setMessage({ type: "success", text: t("registerSuccess") });
-        setTimeout(() => router.push("/setup"), 800);
+        setTimeout(() => router.push("/setup"), REDIRECT_DELAY_MS);
       } else if (res.status === 409 || (data.error && /exist/i.test(data.error))) {
         // Duplicate email — show a translated message inline under the field.
         setServerErrors((s) => ({ ...s, email: t("errEmailExists") }));
@@ -268,7 +265,7 @@ export default function RegisterForm({ onBack, onLogin }) {
             id="country"
             value={form.country}
             onChange={(v) => {
-              if (/^[a-zA-Z\u00C0-\u017F\s]*$/.test(v)) {
+              if (isLettersOnly(v)) {
                 setForm((f) => ({ ...f, country: v }));
               }
             }}

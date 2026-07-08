@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import styles from "@/app/(auth)/auth.module.css";
 import PasswordInput from "./PasswordInput";
 import { useTranslation } from "@/lib/LanguageContext";
+import { REDIRECT_DELAY_MS } from "@/lib/constants";
 
 export default function LoginForm({ onBack, onRegister, onForgotPassword }) {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function LoginForm({ onBack, onRegister, onForgotPassword }) {
       if (res.ok) {
         localStorage.setItem("user", JSON.stringify(data.user));
         setMessage({ type: "success", text: t("loginSuccess") });
-        setTimeout(() => router.push("/game"), 800);
+        setTimeout(() => router.push("/game"), REDIRECT_DELAY_MS);
       } else {
         setMessage({ type: "error", text: data.error });
         setLoading(false);

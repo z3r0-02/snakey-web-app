@@ -4,6 +4,12 @@ export function isValidEmail(email) {
   return EMAIL_REGEX.test(email);
 }
 
+export const LETTERS_ONLY_REGEX = /^[a-zA-ZÀ-ſ\s]*$/;
+
+export function isLettersOnly(value) {
+  return LETTERS_ONLY_REGEX.test(value);
+}
+
 export const PASSWORD_ERROR_CODES = {
   TOO_SHORT: "PASSWORD_TOO_SHORT",
   MISSING_UPPERCASE: "PASSWORD_MISSING_UPPERCASE",

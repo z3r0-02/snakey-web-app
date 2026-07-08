@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/LanguageContext";
+import styles from "./GlobalFlags.module.css";
 
 export default function GlobalFlags() {
   const pathname = usePathname();
@@ -12,22 +13,22 @@ export default function GlobalFlags() {
   }
 
   return (
-    <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+    <div className={styles.flags}>
       <button
         onClick={() => switchLang("en")}
-        style={{ background: "none", border: "none", cursor: "pointer", opacity: lang === "en" ? 1 : 0.4, transition: "opacity 0.2s", lineHeight: 0 }}
+        className={`${styles.flagBtn} ${lang === "en" ? styles.flagBtnActive : ""}`}
         aria-label="English"
         data-cy="lang-en"
       >
-        <span className="fi fi-gb" style={{ fontSize: "1.1rem" }} />
+        <span className={`fi fi-gb ${styles.flagIcon}`} />
       </button>
       <button
         onClick={() => switchLang("cs")}
-        style={{ background: "none", border: "none", cursor: "pointer", opacity: lang === "cs" ? 1 : 0.4, transition: "opacity 0.2s", lineHeight: 0 }}
+        className={`${styles.flagBtn} ${lang === "cs" ? styles.flagBtnActive : ""}`}
         title="Čeština"
         data-cy="lang-cs"
       >
-        <span className="fi fi-cz" style={{ fontSize: "1.1rem" }} />
+        <span className={`fi fi-cz ${styles.flagIcon}`} />
       </button>
     </div>
   );

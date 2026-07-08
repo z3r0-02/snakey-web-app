@@ -20,7 +20,6 @@ data/*.db
 .vercel
 
 # local agent config
-.agents
 .claude
 CLAUDE.md
 
@@ -33,5 +32,3 @@ cypress/screenshots
 cypress/videos
 cypress/downloads
 
-# README — actively being edited, don't want it accidentally staged
-README.md

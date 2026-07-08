@@ -5,7 +5,7 @@ const en = {
     logIn: "Log In",
     createAccount: "Create an Account",
     or: "or",
-    continueAsHost: "Continue as a Guest",
+    continueAsGuest: "Continue as a Guest",
     termsPrefix: "By creating an account, you acknowledge that you have read and agree to our ",
     termsLink: "Terms & Conditions",
     

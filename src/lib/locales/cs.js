@@ -5,7 +5,7 @@ const cs = {
     logIn: "Přihlásit se",
     createAccount: "Vytvořit účet",
     or: "nebo",
-    continueAsHost: "Pokračovat jako host",
+    continueAsGuest: "Pokračovat jako host",
     termsPrefix: "Vytvořením účtu potvrzujete, že jste si přečetli a souhlasíte s ",
     termsLink: "Podmínkami služby",
     
