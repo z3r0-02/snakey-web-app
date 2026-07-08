@@ -26,12 +26,22 @@
 .navLinks {
   composes: navLinks from "../../styles/nav.module.css";
   composes: navLinksMobileWrap from "../../styles/nav.module.css";
-  gap: var(--space-lg);
 }
 
 .navLink {
   composes: navLink from "../../styles/nav.module.css";
   composes: navLinkMobileTight from "../../styles/nav.module.css";
+}
+
+.navBrandStatic {
+  pointer-events: none;
+}
+
+.navBrandLogo {
+  object-fit: contain;
+  width: clamp(60px, 8vw, 100px);
+  height: auto;
+  pointer-events: none;
 }
 
 @media (max-width: 540px) {

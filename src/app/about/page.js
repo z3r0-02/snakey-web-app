@@ -36,14 +36,15 @@ export default function About() {
         }
       }
     } catch {
+      // If no user data, do nothing (user is not logged in).
     }
   }, []);
 
   return (
     <div className={styles.container}>
       <nav className={styles.nav}>
-        <span className={styles.navBrand} style={{ pointerEvents: "none" }}>
-          <Image src="/dragon_logo.png" alt="Snakey Logo" width={360} height={120} style={{ objectFit: "contain", width: "clamp(60px, 8vw, 100px)", height: "auto", pointerEvents: "none" }} priority />
+        <span className={`${styles.navBrand} ${styles.navBrandStatic}`}>
+          <Image src="/dragon_logo.png" alt="Snakey Logo" width={360} height={120} className={styles.navBrandLogo} priority />
         </span>
         <div className={styles.navLinks}>
           {isLoggedIn && (
