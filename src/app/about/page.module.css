@@ -23,10 +23,6 @@
   color: var(--text-primary);
 }
 
-.navLogo {
-  color: var(--accent-primary);
-}
-
 .navLinks {
   composes: navLinks from "../../styles/nav.module.css";
   composes: navLinksMobileWrap from "../../styles/nav.module.css";
@@ -81,25 +77,6 @@
   object-position: center 10%;
 }
 
-.title {
-  font-size: 2.75rem;
-  text-align: left;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  margin-bottom: var(--space-md);
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.lead {
-  font-size: 1.15rem;
-  line-height: 1.7;
-  color: var(--text-secondary);
-  margin-bottom: var(--space-2xl);
-}
-
 .sectionTitle {
   font-size: 1.25rem;
   font-weight: 700;
@@ -115,11 +92,6 @@
   line-height: 1.7;
   color: var(--text-secondary);
   margin-bottom: var(--space-md);
-}
-
-.accent {
-  color: var(--text-accent);
-  font-weight: 600;
 }
 
 .techList {

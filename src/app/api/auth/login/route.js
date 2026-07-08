@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { initDb } from "@/lib/db";
+import { mapUserRow } from "@/lib/user";
 
 export async function POST(request) {
   try {
@@ -39,24 +40,11 @@ export async function POST(request) {
       );
     }
 
-    // Return user without password
+    // Return user without password (mapUserRow drops it)
     return NextResponse.json(
       {
         message: "Login successful! Redirecting…",
-        user: {
-          id: user.id,
-          name: user.username || `${user.first_name} ${user.last_name}`.trim(),
-          username: user.username,
-          firstName: user.first_name,
-          lastName: user.last_name,
-          email: user.email,
-          gender: user.gender,
-          dob: user.dob,
-          country: user.country,
-          avatar: user.avatar,
-          active_title: user.active_title,
-          active_snake_color: user.active_snake_color,
-        },
+        user: mapUserRow(user),
       },
       { status: 200 }
     );

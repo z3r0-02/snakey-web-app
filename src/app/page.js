@@ -10,6 +10,7 @@ import RegisterForm from "@/components/auth/RegisterForm";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 import TermsModal from "@/components/TermsModal";
 import { LanguageProvider, useTranslation } from "@/lib/LanguageContext";
+import { GUEST_HOST_EMAIL, setHostSession } from "@/lib/constants";
 
 function MainContent() {
   const router = useRouter();
@@ -28,7 +29,7 @@ function MainContent() {
       const user = localStorage.getItem("user");
       if (user && !wantsForm) {
         const u = JSON.parse(user);
-        if (u.email !== "host@platform.local") {
+        if (u.email !== GUEST_HOST_EMAIL) {
           router.replace("/game");
           return;
         }
@@ -57,8 +58,8 @@ function MainContent() {
     if (fromExternal) {
       try {
         const u = JSON.parse(localStorage.getItem("user") || "null");
-        if (u && u.email === "host@platform.local") {
-          window.__hostSession = true;
+        if (u && u.email === GUEST_HOST_EMAIL) {
+          setHostSession(true);
           router.push("/game");
           return;
         }
@@ -72,7 +73,7 @@ function MainContent() {
   if (!ready) return null;
 
   return (
-    <div className={styles.landing}>
+    <main className={styles.landing}>
       <div className={`${styles.card} ${view !== "landing" ? styles.cardWide : styles.cardLanding}`}>
         {view === "landing" && (
           <div className={styles.fadeTransition}>
@@ -98,12 +99,12 @@ function MainContent() {
             {/* Action Buttons */}
             <div className={styles.actions}>
               <button onClick={() => changeView("login")} className={styles.btnPrimary} id="btn-login">
-                <span className={styles.btnIcon}>→</span>
+              <span className={styles.btnIcon} aria-hidden="true">→</span>
                 {t("logIn")}
               </button>
 
               <button onClick={() => changeView("register")} className={styles.btnSecondary} id="btn-register">
-                <span className={styles.btnIcon}>✦</span>
+              <span className={styles.btnIcon} aria-hidden="true">✦</span>
                 {t("createAccount")}
               </button>
 
@@ -114,8 +115,8 @@ function MainContent() {
               </div>
 
               <Link href="/host" className={styles.btnGhost} id="btn-host">
-                <span className={styles.btnIcon}>🏠</span>
-                {t("continueAsHost")}
+              <span className={styles.btnIcon} aria-hidden="true">🏠</span>
+                {t("continueAsGuest")}
               </Link>
             </div>
           </div>
@@ -166,7 +167,7 @@ function MainContent() {
           <button
             onClick={() => switchLang("en")}
             style={{ background: "none", border: "none", cursor: "pointer", opacity: lang === "en" ? 1 : 0.4, transition: "opacity 0.2s", lineHeight: 0 }}
-            title="English"
+            aria-label="English"
             data-cy="lang-en"
           >
             <span className="fi fi-gb" style={{ fontSize: "1.4rem" }} />
@@ -174,7 +175,7 @@ function MainContent() {
           <button
             onClick={() => switchLang("cs")}
             style={{ background: "none", border: "none", cursor: "pointer", opacity: lang === "cs" ? 1 : 0.4, transition: "opacity 0.2s", lineHeight: 0 }}
-            title="Čeština"
+            aria-label="Čeština"
             data-cy="lang-cs"
           >
             <span className="fi fi-cz" style={{ fontSize: "1.4rem" }} />
@@ -183,7 +184,7 @@ function MainContent() {
       )}
 
       {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
-    </div>
+    </main>
   );
 }
 

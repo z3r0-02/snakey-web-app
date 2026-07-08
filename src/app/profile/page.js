@@ -7,13 +7,13 @@ import { useRouter } from "next/navigation";
 import styles from "./profile.module.css";
 import { useTranslation } from "@/lib/LanguageContext";
 import GlobalFlags from "@/components/GlobalFlags";
-import Select from "@/components/auth/Select";
-import CountryCombobox from "@/components/auth/CountryCombobox";
-import DatePicker from "@/components/auth/DatePicker";
-import { COUNTRIES, COUNTRY_CODES } from "@/lib/countries";
+import { COUNTRY_CODES } from "@/lib/countries";
 import { ACHIEVEMENTS, THEMES } from "@/lib/achievements";
-
-// Profile stats are now fetched from the API instead of localStorage.
+import { GUEST_HOST_EMAIL } from "@/lib/constants";
+import { resolveUserId } from "@/lib/user";
+import ProfileAchievements from "./ProfileAchievements";
+import ProfileEditForm from "./ProfileEditForm";
+import ColorSwatch from "./ColorSwatch";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -27,12 +27,6 @@ export default function ProfilePage() {
   const [unlockedAchievements, setUnlockedAchievements] = useState(new Set());
   const [showAllAchievements, setShowAllAchievements] = useState(false);
 
-  const GENDERS = [
-    { value: "female", label: t("genderFemale") },
-    { value: "male", label: t("genderMale") },
-    { value: "undisclosed", label: t("genderUndisclosed") },
-  ];
-  
   const today = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
@@ -45,13 +39,13 @@ export default function ProfilePage() {
           return;
         }
         // Guests (host session) don't have a real account — no profile for them.
-        if (u.email === "host@platform.local") {
+        if (u.email === GUEST_HOST_EMAIL) {
           router.replace("/game");
           return;
         }
         setUser(u);
 
-        const userId = u.id || u.username || u.email;
+        const userId = resolveUserId(u);
         const today = new Date().toISOString().slice(0, 10);
         const userName = u.name || u.email;
 
@@ -91,7 +85,7 @@ export default function ProfilePage() {
         setMounted(true);
       } catch (err) {
         console.error("Failed to load profile stats:", err);
-        setMounted(true); // Still mount to show UI
+        setMounted(true);
       }
     };
     initProfile();
@@ -113,7 +107,7 @@ export default function ProfilePage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user.id || user.username || user.email,
+          userId: resolveUserId(user),
           ...editForm
         })
       });
@@ -139,7 +133,7 @@ export default function ProfilePage() {
       const res = await fetch("/api/profile/equip", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id || user.username || user.email, type, value })
+        body: JSON.stringify({ userId: resolveUserId(user), type, value })
       });
       if (res.ok) {
         const data = await res.json();
@@ -176,75 +170,22 @@ export default function ProfilePage() {
   const glowingColors = Object.keys(THEMES).filter(id => THEMES[id].glow && !THEMES[id].pattern);
   const patternedColors = Object.keys(THEMES).filter(id => THEMES[id].pattern);
 
-  const renderColorSwatch = (colorId) => {
-    const theme = THEMES[colorId];
-    if (!theme) return null;
-    const isUnlocked = unlockedColors.includes(colorId);
-    const isActive = user.active_snake_color === colorId;
-    
-    if (!isUnlocked) {
-      return (
-        <div
-          key={colorId}
-          className={styles.colorSwatch}
-          data-cy="color-swatch-locked"
-          style={{
-            background: "transparent",
-            border: "1px solid var(--border-subtle)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "not-allowed",
-            opacity: 0.6
-          }}
-          title={t("locked")}
-        >
-          <svg width="14" height="18" viewBox="0 0 24 24" fill="#ffffff" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}>
-            <rect x="5" y="11" width="14" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" />
-          </svg>
-        </div>
-      );
-    }
-
-    return (
-      <div
-        key={colorId}
-        className={`${styles.colorSwatch} ${isActive ? styles.colorSwatchActive : ""}`}
-        data-cy={isActive ? "color-swatch-active" : "color-swatch"}
-        style={{
-          background: theme.pattern === "zebra" ? `linear-gradient(135deg, ${theme.head} 50%, ${theme.body} 50%)` : theme.head,
-          boxShadow: theme.glow ? `0 0 12px ${theme.pattern === "zebra" ? "rgba(0,0,0,0.8)" : (colorId === "glow_yellow" ? theme.body : theme.head)}` : "none",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden"
-        }}
-        onClick={() => equipItem("color", colorId)}
-        title={t(`color_${colorId}`)}
-      >
-        {theme.pattern === "wizard" && (
-          <div style={{ width: "8px", height: "8px", background: "#fef08a", borderRadius: "50%" }} />
-        )}
-        {theme.pattern === "dots" && (
-          <div style={{ width: "6px", height: "6px", background: "rgba(255,255,255,0.7)", borderRadius: "50%" }} />
-        )}
-        {theme.pattern === "lines" && (
-          <div style={{ width: "16px", height: "3px", background: "rgba(255,255,255,0.7)" }} />
-        )}
-        {theme.pattern === "zigzag" && (
-          <div style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.7)", fontWeight: "bold", lineHeight: 1 }}>Z</div>
-        )}
-      </div>
-    );
-  };
+  const renderSwatch = (colorId) => (
+    <ColorSwatch
+      key={colorId}
+      colorId={colorId}
+      isUnlocked={unlockedColors.includes(colorId)}
+      isActive={user.activeSnakeColor === colorId}
+      onEquip={equipItem}
+    />
+  );
 
   return (
     <div className={styles.profilePage}>
       {/* Nav */}
       <nav className={styles.nav}>
         <span className={styles.navBrand}>
-          <Image src="/dragon_logo.png" alt="Snakey Logo" width={360} height={120} style={{ objectFit: "contain", width: "clamp(60px, 8vw, 100px)", height: "auto" }} priority />
+          <Image src="/dragon_logo.png" alt="Snakey Logo" width={360} height={120} className={styles.navBrandLogo} priority />
         </span>
         <div className={styles.navLinks}>
           <Link href="/game" className={styles.navLink}>
@@ -263,57 +204,11 @@ export default function ProfilePage() {
       {/* Profile Card */}
       <div className={styles.contentWrapper}>
         <div className={styles.leftColumn}>
-          {/* Achievements Section */}
-          <div className={styles.achievementsCard} id="achievements-section">
-            <div className={`${styles.details} ${styles.achievementsDetails}`}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
-                <h2 className={styles.detailsTitle} style={{ marginBottom: 0 }}>{t("achievementsTitle")}</h2>
-                <span style={{ color: "var(--text-muted)", fontSize: "0.9rem", fontWeight: "500" }}>
-                  {Array.from(unlockedAchievements).filter(id => ACHIEVEMENTS.find(a => a.id === id)).length}/{ACHIEVEMENTS.length}
-                </span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flex: 1, overflowY: "auto", paddingRight: "0.5rem", minHeight: 0 }}>
-                {ACHIEVEMENTS.map((ach, index) => {
-                  const isUnlocked = unlockedAchievements.has(ach.id);
-                  const opacity = isUnlocked ? 1 : 0.5;
-                  const filter = isUnlocked ? "none" : "grayscale(100%)";
-                  const isMobileHidden = !showAllAchievements && index >= 3;
-                  
-                  return (
-                    <div key={ach.id} className={isMobileHidden ? styles.mobileHidden : ""} style={{ display: "flex", flexDirection: "column", gap: "0.25rem", padding: "0.5rem 0.75rem", background: "rgba(19, 35, 48, 0.03)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-subtle)", opacity, filter }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <h3 style={{ margin: 0, color: "var(--text-primary)", fontSize: "0.9rem" }}>
-                          {ach.hidden && !isUnlocked ? t("hidden_achievement") : t(`ach_${ach.id}_name`)}
-                        </h3>
-                        {!isUnlocked && (
-                          <svg width="12" height="14" viewBox="0 0 24 24" fill="#ffffff" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8, flexShrink: 0, marginLeft: "0.5rem", marginTop: "0.1rem" }}>
-                            <rect x="5" y="11" width="14" height="11" rx="2" ry="2" />
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" />
-                          </svg>
-                        )}
-                      </div>
-                      <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.75rem", lineHeight: "1.3" }}>
-                        {ach.hidden && !isUnlocked ? t("hidden_achievement_desc") : t(`ach_${ach.id}_desc`)}
-                      </p>
-                    </div>
-                  );
-                })}
-                {ACHIEVEMENTS.length > 3 && (
-                  <button 
-                    className={styles.mobileShowMoreBtn} 
-                    onClick={() => {
-                      if (showAllAchievements) {
-                        document.getElementById('achievements-section')?.scrollIntoView({ behavior: 'smooth' });
-                      }
-                      setShowAllAchievements(!showAllAchievements);
-                    }}
-                  >
-                    {showAllAchievements ? (t("showLess") || "Show Less") : (t("showMore") || "Show More")}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+          <ProfileAchievements
+            unlockedAchievements={unlockedAchievements}
+            showAllAchievements={showAllAchievements}
+            setShowAllAchievements={setShowAllAchievements}
+          />
         </div>
 
         <div className={styles.middleColumn}>
@@ -342,20 +237,19 @@ export default function ProfilePage() {
             {displayName}
             {user.country && COUNTRY_CODES[user.country] && (
               <span
-                className={`fi fi-${COUNTRY_CODES[user.country]}`}
-                style={{ marginLeft: "0.5rem", fontSize: "1.2rem", verticalAlign: "middle" }}
+                className={`fi fi-${COUNTRY_CODES[user.country]} ${styles.flagInline}`}
                 title={user.country}
               />
             )}
             {user.country === "Other" && (
-              <span style={{ marginLeft: "0.5rem", fontSize: "1.2rem" }} title={user.country}>
+              <span className={styles.flagEmoji} title={user.country}>
                 🌍
               </span>
             )}
           </h1>
           {user.email && <p className={styles.email}>{user.email}</p>}
           <span className={`${styles.badge} ${styles.badgeUser}`}>
-            {user.active_title ? t(`title_${user.active_title}`) : t("badgeMember")}
+            {user.activeTitle ? t(`title_${user.activeTitle}`) : t("badgeMember")}
           </span>
         </div>
 
@@ -377,32 +271,13 @@ export default function ProfilePage() {
 
         {/* Details */}
         <div className={`${styles.details} ${styles.profileDetails}`}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-md)" }}>
-            <h2 className={styles.detailsTitle} style={{ margin: 0 }}>{isEditing ? t("editingProfileTitle") : t("detailsTitle")}</h2>
+          <div className={styles.detailsHeader}>
+            <h2 className={`${styles.detailsTitle} ${styles.detailsTitleFlush}`}>{isEditing ? t("editingProfileTitle") : t("detailsTitle")}</h2>
             {!isEditing && (
               <button
                 onClick={handleEditClick}
                 data-cy="edit-profile-btn"
-                style={{
-                  background: "rgba(19, 35, 48, 0.05)",
-                  border: "1px solid var(--border-subtle)",
-                  color: "var(--text-secondary)",
-                  cursor: "pointer",
-                  padding: "0.5rem",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "all 0.2s"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "var(--text-primary)";
-                  e.currentTarget.style.background = "rgba(19, 35, 48, 0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "var(--text-secondary)";
-                  e.currentTarget.style.background = "rgba(19, 35, 48, 0.05)";
-                }}
+                className={styles.editBtn}
                 title={t("editProfileBtn")}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -414,66 +289,14 @@ export default function ProfilePage() {
           </div>
 
           {isEditing ? (
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div className={`${styles.detailRow} ${styles.editRow}`}>
-                <span className={styles.detailLabel}>{t("gender")}</span>
-                <div style={{ width: "100%", maxWidth: "220px", position: "relative", zIndex: 12 }}>
-                  <Select
-                    id="gender"
-                    value={editForm.gender}
-                    onChange={(v) => setEditForm((f) => ({ ...f, gender: v }))}
-                    options={GENDERS}
-                    placeholder={t("genderSelect")}
-                  />
-                </div>
-              </div>
-              <div className={`${styles.detailRow} ${styles.editRow}`}>
-                <span className={styles.detailLabel}>{t("country")}</span>
-                <div style={{ width: "100%", maxWidth: "220px", position: "relative", zIndex: 11 }}>
-                  <CountryCombobox
-                    id="country"
-                    value={editForm.country}
-                    onChange={(v) => {
-                      if (/^[a-zA-Z\u00C0-\u017F\s]*$/.test(v)) {
-                        setEditForm((f) => ({ ...f, country: v }));
-                      }
-                    }}
-                    options={COUNTRIES}
-                    placeholder={t("countryPlh")}
-                  />
-                </div>
-              </div>
-              <div className={`${styles.detailRow} ${styles.editRow}`} style={{ borderBottom: "none" }}>
-                <span className={styles.detailLabel}>{t("dob")}</span>
-                <div style={{ width: "100%", maxWidth: "220px", position: "relative", zIndex: 10 }}>
-                  <DatePicker
-                    id="dob"
-                    value={editForm.dob}
-                    onChange={(v) => setEditForm((f) => ({ ...f, dob: v }))}
-                    max={today}
-                    placeholder={t("dobPlh")}
-                  />
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem", justifyContent: "flex-end" }}>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  data-cy="cancel-edit-btn"
-                  style={{ padding: "0.5rem 1rem", border: "1px solid var(--border-subtle)", background: "transparent", borderRadius: "var(--radius-sm)", color: "var(--text-primary)", cursor: "pointer", fontSize: "0.85rem" }}
-                  disabled={loading}
-                >
-                  {t("cancelBtn")}
-                </button>
-                <button
-                  onClick={handleSave}
-                  data-cy="save-changes-btn"
-                  style={{ padding: "0.5rem 1rem", border: "none", background: "var(--text-accent)", color: "white", borderRadius: "var(--radius-sm)", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                  disabled={loading}
-                >
-                  {loading ? "..." : t("saveChangesBtn")}
-                </button>
-              </div>
-            </div>
+            <ProfileEditForm
+              editForm={editForm}
+              setEditForm={setEditForm}
+              onSave={handleSave}
+              onCancel={() => setIsEditing(false)}
+              loading={loading}
+              today={today}
+            />
           ) : (
             <>
               <div className={styles.detailRow}>
@@ -509,32 +332,32 @@ export default function ProfilePage() {
         <div className={styles.rightColumn}>
           <div className={`${styles.card} ${styles.achievementsCard}`}>
             <div className={`${styles.details} ${styles.achievementsDetails}`}>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "1rem", marginBottom: "1rem" }}>
+              <div className={styles.colorSection}>
                 <h2 className={styles.detailsTitle}>{t("chooseColorTitle") || "Choose your colour"}</h2>
-                <div style={{ paddingBottom: "0.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div className={styles.colorGroups}>
                   <div>
-                    <div className={styles.colorGrid} style={{ marginTop: 0, padding: "0 12px", gap: "0.5rem" }}>
-                      {simpleColors.map(renderColorSwatch)}
+                    <div className={`${styles.colorGrid} ${styles.colorGridTight}`}>
+                      {simpleColors.map(renderSwatch)}
                     </div>
                   </div>
                   <div>
-                    <div className={styles.colorGrid} style={{ marginTop: 0, padding: "0 12px", gap: "0.5rem" }}>
-                      {glowingColors.map(renderColorSwatch)}
+                    <div className={`${styles.colorGrid} ${styles.colorGridTight}`}>
+                      {glowingColors.map(renderSwatch)}
                     </div>
                   </div>
                   <div>
-                    <div className={styles.colorGrid} style={{ marginTop: 0, padding: "0 12px", gap: "0.5rem" }}>
-                      {patternedColors.map(renderColorSwatch)}
+                    <div className={`${styles.colorGrid} ${styles.colorGridTight}`}>
+                      {patternedColors.map(renderSwatch)}
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                <h2 className={styles.detailsTitle} style={{ margin: 0, marginBottom: "1rem" }}>{t("chooseTitleTitle") || "Choose your title"}</h2>
-                <div className={styles.titleFlex} style={{ alignContent: "flex-start" }}>
+              <div className={styles.titleSection}>
+                <h2 className={`${styles.detailsTitle} ${styles.titleSectionTitle}`}>{t("chooseTitleTitle") || "Choose your title"}</h2>
+                <div className={`${styles.titleFlex} ${styles.titleFlexStart}`}>
                   {unlockedTitles.length > 0 ? unlockedTitles.map(titleId => {
-                    const isActive = user.active_title === titleId;
+                    const isActive = user.activeTitle === titleId;
                     return (
                       <button
                         key={titleId}
@@ -545,7 +368,7 @@ export default function ProfilePage() {
                       </button>
                     );
                   }) : (
-                    <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{t("noTitlesYet") || "No titles unlocked yet."}</span>
+                    <span className={styles.noTitles}>{t("noTitlesYet") || "No titles unlocked yet."}</span>
                   )}
                 </div>
               </div>

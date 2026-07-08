@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { GUEST_HOST_EMAIL, setHostSession } from "@/lib/constants";
 
 export default function HostPage() {
   const router = useRouter();
@@ -9,11 +10,11 @@ export default function HostPage() {
   useEffect(() => {
     localStorage.setItem(
       "user",
-      JSON.stringify({ email: "host@platform.local", name: "Host" })
+      JSON.stringify({ email: GUEST_HOST_EMAIL, name: "Host" })
     );
-    // In-memory flag marking an active guest host session. It survives the
-    // client-side navigation below but is wiped by any full page load.
-    window.__hostSession = true;
+    // Mark an active guest host session. It survives client-side navigation
+    // but is wiped when the browser tab is closed (sessionStorage).
+    setHostSession(true);
     router.replace("/game");
   }, [router]);
 

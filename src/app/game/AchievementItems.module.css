@@ -1,0 +1,44 @@
+.allUnlocked {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0.5rem;
+  color: var(--text-accent);
+  font-weight: 600;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.allUnlockedNowrap {
+  white-space: nowrap;
+}
+
+.achItem {
+  composes: infoBullet from "./gameLayout.module.css";
+  align-items: flex-start;
+  padding: 0.5rem 0.75rem;
+  background: rgba(19, 35, 48, 0.03);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.achDot {
+  composes: infoDot from "./gameLayout.module.css";
+  background: var(--border-subtle);
+  margin-top: 0.4rem;
+}
+
+.achText {
+  display: flex;
+  flex-direction: column;
+}
+
+.achName {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.achDesc {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}

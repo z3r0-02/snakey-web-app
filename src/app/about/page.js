@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import { useTranslation } from "@/lib/LanguageContext";
 import GlobalFlags from "@/components/GlobalFlags";
+import { GUEST_HOST_EMAIL, setHostSession } from "@/lib/constants";
 
 export default function About() {
   const { t } = useTranslation();
@@ -16,7 +17,7 @@ export default function About() {
 
   function handleLogout() {
     localStorage.removeItem("user");
-    if (typeof window !== "undefined") window.__hostSession = false;
+    if (typeof window !== "undefined") setHostSession(false);
     router.push("/");
   }
 
@@ -27,8 +28,8 @@ export default function About() {
         const user = JSON.parse(raw);
         if (user && (user.email || user.username)) {
           setHasSession(true);
-          if (user.email === "host@platform.local") {
-            window.__hostSession = true;
+          if (user.email === GUEST_HOST_EMAIL) {
+            setHostSession(true);
           } else {
             setIsLoggedIn(true);
           }

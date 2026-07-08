@@ -6,9 +6,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useSnakeGame from "./useSnakeGame";
 import styles from "./gameLayout.module.css";
-import { ACHIEVEMENTS, THEMES, GLOWING_COLORS } from "@/lib/achievements";
+import { ACHIEVEMENTS } from "@/lib/achievements";
 import { useTranslation } from "@/lib/LanguageContext";
 import GlobalFlags from "@/components/GlobalFlags";
+import { GUEST_HOST_EMAIL, isHostSession } from "@/lib/constants";
+import { resolveUserId } from "@/lib/user";
+import AuthDropdown from "./AuthDropdown";
+import GameOverlay from "./GameOverlay";
+import { AllAchievementsUnlockedMsg, AchievementListItem } from "./AchievementItems";
 
 const MAX_ATTEMPTS = 3;
 
@@ -19,39 +24,6 @@ function getUser() {
   } catch {
     return null;
   }
-}
-
-function AllAchievementsUnlockedMsg({ t, extraStyle }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "2rem 0.5rem", color: "var(--text-accent)", fontWeight: 600, textAlign: "center", fontSize: "0.9rem", ...extraStyle }}>
-      ✨ {t("allUnlocked") || "All achievements unlocked!"} ✨
-    </div>
-  );
-}
-
-function AchievementListItem({ ach, t, styles }) {
-  return (
-    <li
-      className={styles.infoBullet}
-      style={{
-        alignItems: "flex-start",
-        padding: "0.5rem 0.75rem",
-        background: "rgba(19, 35, 48, 0.03)",
-        borderRadius: "var(--radius-md)",
-        border: "1px solid var(--border-subtle)",
-      }}
-    >
-      <span className={styles.infoDot} style={{ background: "var(--border-subtle)", marginTop: "0.4rem" }} />
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <strong style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-          {ach.hidden ? t("hidden_achievement") : t(`ach_${ach.id}_name`)}
-        </strong>
-        <span style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>
-          {ach.hidden ? t("hidden_achievement_desc") : t(`ach_${ach.id}_desc`)}
-        </span>
-      </div>
-    </li>
-  );
 }
 
 export default function GamePage() {
@@ -80,31 +52,7 @@ export default function GamePage() {
   const [isRouletteSpinning, setIsRouletteSpinning] = useState(false);
   const [rouletteColorIndex, setRouletteColorIndex] = useState(0);
   const [rewardRevealed, setRewardRevealed] = useState(false);
-  const [showAuthDropdown, setShowAuthDropdown] = useState(false);
-  const dropdownTimeoutRef = useRef(null);
-  const authToggleRef = useRef(null);
-  const [authDropdownStyle, setAuthDropdownStyle] = useState(null);
-
-  useLayoutEffect(() => {
-    if (!showAuthDropdown) return;
-    function computePosition() {
-      const btn = authToggleRef.current;
-      if (!btn) return;
-      const rect = btn.getBoundingClientRect();
-      const width =
-        window.innerWidth <= 540
-          ? window.innerWidth - 24
-          : Math.min(300, window.innerWidth - 24);
-      const left = Math.min(
-        Math.max(rect.right - width, 12),
-        window.innerWidth - width - 12
-      );
-      setAuthDropdownStyle({ top: rect.bottom + 4, left, width });
-    }
-    computePosition();
-    window.addEventListener("resize", computePosition);
-    return () => window.removeEventListener("resize", computePosition);
-  }, [showAuthDropdown]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Detect newly unlocked achievements and queue a toast for each.
   useEffect(() => {
@@ -121,7 +69,7 @@ export default function GamePage() {
     prevUnlockedRef.current = new Set(unlockedAchievements);
   }, [unlockedAchievements]);
 
-  // Dismiss (pop) the currently-showing toast after 3.5s.
+  // Dismiss the currently-showing toast after 3.5s.
   useEffect(() => {
     if (achievementToastQueue.length === 0) return;
     const timer = setTimeout(() => {
@@ -130,26 +78,8 @@ export default function GamePage() {
     return () => clearTimeout(timer);
   }, [achievementToastQueue]);
 
-  const handleMouseEnterAuth = () => {
-    if (dropdownTimeoutRef.current) {
-      clearTimeout(dropdownTimeoutRef.current);
-    }
-    setShowAuthDropdown(true);
-  };
-
-  const handleMouseLeaveAuth = () => {
-    dropdownTimeoutRef.current = setTimeout(() => {
-      setShowAuthDropdown(false);
-    }, 100);
-  };
-  const [loginUsername, setLoginUsername] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
-  const [loginLoading, setLoginLoading] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-
   const attemptsLeft = MAX_ATTEMPTS - attempts.used;
-  const isHost = user?.email === "host@platform.local";
+  const isHost = user?.email === GUEST_HOST_EMAIL;
   const canPlay = attemptsLeft > 0;
 
   // --- Info panel (Game Guide + Achievements) and Leaderboard column ---
@@ -202,7 +132,7 @@ export default function GamePage() {
     (finalScore, crashReason) => {
       if (!user) return;
 
-      const userId = user.id || user.username || user.email;
+      const userId = resolveUserId(user);
 
       // Update local best score for this session (important for host users)
       setBestScore(prev => Math.max(prev, finalScore));
@@ -270,7 +200,7 @@ export default function GamePage() {
       fetch("/api/achievements/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, score: finalScore, crashReason, date: globalDate, activeColor: user?.active_snake_color || "default" }),
+        body: JSON.stringify({ userId, score: finalScore, crashReason, date: globalDate, activeColor: user?.activeSnakeColor || "default" }),
       })
         .then(async (achRes) => {
           if (!achRes.ok) return;
@@ -289,7 +219,7 @@ export default function GamePage() {
   );
 
 
-  const userSnakeColor = user?.active_snake_color || "default";
+  const userSnakeColor = user?.activeSnakeColor || "default";
 
   const { canvasRef, score, gameState, startGame, CANVAS_SIZE, countdown, changeDirection } = useSnakeGame({
     onGameOver: handleGameOver,
@@ -306,17 +236,17 @@ export default function GamePage() {
         return;
       }
 
-      if (u.email === "host@platform.local" && !window.__hostSession) {
+      if (u.email === GUEST_HOST_EMAIL && !isHostSession()) {
         localStorage.removeItem("user");
         router.replace("/");
         return;
       }
 
       setUser(u);
-      
-      const userId = u.id || u.username || u.email;
 
-      const isHostUser = userId === "host@platform.local";
+      const userId = resolveUserId(u);
+
+      const isHostUser = userId === GUEST_HOST_EMAIL;
 
       const applyLeaderboard = (lbRes) => {
         if (!lbRes.ok) return;
@@ -381,6 +311,13 @@ export default function GamePage() {
     router.push(`/?view=${view}`);
   }
 
+  function handleLoginSuccess(loggedInUser) {
+    localStorage.setItem("user", JSON.stringify(loggedInUser));
+    setUser(loggedInUser);
+    setMounted(false);
+    setRefreshKey((prev) => prev + 1);
+  }
+
   if (!mounted) return null;
 
 
@@ -391,7 +328,7 @@ export default function GamePage() {
         const ach = ACHIEVEMENTS.find((a) => a.id === activeAchievementToast);
         if (!ach) return null;
         return (
-          <div className={styles.achievementToast} data-cy="achievement-toast" key={activeAchievementToast}>
+          <div className={styles.achievementToast} data-cy="achievement-toast" key={activeAchievementToast} role="alert" aria-live="polite">
             <span className={styles.achievementToastIcon}>🏅</span>
             <div>
               <div className={styles.achievementToastLabel}>
@@ -410,125 +347,11 @@ export default function GamePage() {
 
       {/* Nav */}
       <nav className={styles.nav}>
-        <span className={styles.navBrand} style={{ pointerEvents: "none" }}>
-          <Image src="/dragon_logo.png" alt="Snakey Logo" width={360} height={120} style={{ objectFit: "contain", width: "clamp(60px, 8vw, 100px)", height: "auto", pointerEvents: "none" }} priority />
+        <span className={`${styles.navBrand} ${styles.navBrandStatic}`}>
+          <Image src="/dragon_logo.png" alt="Snakey Logo" width={360} height={120} className={styles.navBrandLogo} priority />
         </span>
         <div className={styles.navLinks}>
-          {isHost && (
-            <div 
-              style={{ position: "relative" }} 
-              onMouseEnter={handleMouseEnterAuth}
-              onMouseLeave={handleMouseLeaveAuth}
-            >
-              <button
-                ref={authToggleRef}
-                className={styles.navLink}
-                data-cy="nav-login-toggle"
-                onClick={() => setShowAuthDropdown(!showAuthDropdown)}
-              >
-                {t("logIn")} ▼
-              </button>
-              {showAuthDropdown && authDropdownStyle && (
-                <div className={styles.authDropdown} data-cy="auth-dropdown" style={authDropdownStyle}>
-                  <form 
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      setLoginError("");
-                      
-                      if (!loginUsername) {
-                        setLoginError("errUsernameReq");
-                        return;
-                      }
-                      if (!loginPassword) {
-                        setLoginError("errPasswordReq");
-                        return;
-                      }
-
-                      setLoginLoading(true);
-                      try {
-                        const res = await fetch("/api/auth/login", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ username: loginUsername, password: loginPassword })
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                          localStorage.setItem("user", JSON.stringify(data.user));
-                          window.__hostSession = false;
-                          setUser(data.user);
-                          setShowAuthDropdown(false);
-                          setMounted(false);
-                          setRefreshKey((prev) => prev + 1);
-                        } else {
-                          setLoginError(data.error === "Invalid username or password." ? "errInvalidCreds" : data.error);
-                        }
-                      } catch {
-                        setLoginError("somethingWentWrong");
-                      }
-                      setLoginLoading(false);
-                    }}
-                    style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}
-                  >
-                    <input 
-                      type="text" 
-                      placeholder={t("username")} 
-                      value={loginUsername}
-                      onChange={(e) => { setLoginUsername(e.target.value); setLoginError(""); }}
-                      style={{ 
-                        padding: "0.6rem 0.75rem", 
-                        borderRadius: "var(--radius-sm)", 
-                        border: `1px solid ${loginError && !loginUsername ? "#ef4444" : "var(--border-default)"}`, 
-                        background: "var(--bg-primary)", 
-                        color: "var(--text-primary)", 
-                        width: "100%",
-                        fontSize: "0.9rem",
-                        transition: "border-color 0.2s"
-                      }}
-                    />
-                    <div style={{ position: "relative", width: "100%" }}>
-                      <input 
-                        type="password" 
-                        placeholder={t("password")} 
-                        value={loginPassword}
-                        onChange={(e) => { setLoginPassword(e.target.value); setLoginError(""); }}
-                        style={{ 
-                          padding: "0.6rem 0.75rem", 
-                          borderRadius: "var(--radius-sm)", 
-                          border: `1px solid ${loginError && !loginPassword ? "#ef4444" : "var(--border-default)"}`, 
-                          background: "var(--bg-primary)", 
-                          color: "var(--text-primary)", 
-                          width: "100%",
-                          fontSize: "0.9rem",
-                          transition: "border-color 0.2s"
-                        }}
-                      />
-                    </div>
-                    
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%", minHeight: "18px" }}>
-                      <span style={{ color: "#ef4444", fontSize: "0.75rem", fontWeight: "500", maxWidth: "60%", lineHeight: 1.2 }}>
-                        {loginError ? (t(loginError) !== loginError ? t(loginError) : loginError) : ""}
-                      </span>
-                      <button type="button" onClick={() => goToAuth("forgotPassword")} style={{ background: "none", border: "none", color: "var(--text-secondary)", fontSize: "0.75rem", cursor: "pointer", padding: 0, textDecoration: "underline", marginLeft: "auto" }}>
-                        {t("forgotPasswordLink")}
-                      </button>
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginTop: "0.25rem" }}>
-                      <button type="submit" disabled={loginLoading} style={{ background: "var(--gradient-primary)", color: "var(--on-accent)", padding: "0.6rem", borderRadius: "var(--radius-sm)", border: "none", cursor: "pointer", fontWeight: "600", width: "100%", transition: "transform 0.1s" }} onMouseDown={(e) => e.currentTarget.style.transform="scale(0.98)"} onMouseUp={(e) => e.currentTarget.style.transform="scale(1)"} onMouseLeave={(e) => e.currentTarget.style.transform="scale(1)"}>
-                        {loginLoading ? "..." : t("logIn")}
-                      </button>
-                      <div style={{ fontSize: "0.85rem", textAlign: "center", color: "var(--text-secondary)" }}>
-                        {t("noAccount") || "Don't have an account? "}{" "}
-                        <button type="button" onClick={() => goToAuth("register")} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 0, textDecoration: "underline", fontSize: "inherit", fontFamily: "inherit" }}>
-                          {t("createOne") || "Register"}
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              )}
-            </div>
-          )}
+          {isHost && <AuthDropdown onLoginSuccess={handleLoginSuccess} />}
           {!isHost && (
             <Link href="/profile" className={styles.navLink} data-cy="nav-profile">
               {t("navProfile")}
@@ -556,13 +379,13 @@ export default function GamePage() {
             </div>
             <ul className={styles.infoList}>
               <li className={styles.infoBullet}>
-                <span className={styles.infoDot} style={{ background: "#f59e0b" }} />
+                <span className={`${styles.infoDot} ${styles.infoDotYellow}`} />
                 <span>
                   {t("guideYellow")} <strong className={styles.infoEmph}>{t("points10")}</strong>.
                 </span>
               </li>
               <li className={styles.infoBullet}>
-                <span className={styles.infoDot} style={{ background: "#ef4444" }} />
+                <span className={`${styles.infoDot} ${styles.infoDotRed}`} />
                 <span>
                   {t("guideRed")} <strong className={styles.infoEmph}>{t("points30")}</strong>
                 </span>
@@ -588,7 +411,7 @@ export default function GamePage() {
               {(() => {
                 const visible = ACHIEVEMENTS.filter(a => !unlockedAchievements.has(a.id));
                 if (visible.length === 0) return (
-                  <AllAchievementsUnlockedMsg t={t} extraStyle={{ whiteSpace: "nowrap" }} />
+                  <AllAchievementsUnlockedMsg nowrap />
                 );
                 return (
                   <ul
@@ -597,7 +420,7 @@ export default function GamePage() {
                     style={{ gap: "0.5rem", maxHeight: achListMaxHeight ?? undefined }}
                   >
                     {visible.map(ach => (
-                      <AchievementListItem key={ach.id} ach={ach} t={t} styles={styles} />
+                      <AchievementListItem key={ach.id} ach={ach} />
                     ))}
                   </ul>
                 );
@@ -625,6 +448,7 @@ export default function GamePage() {
               );
             })}
           </div>
+          <span className="sr-only">{attemptsLeft} attempts remaining</span>
 
           {/* Canvas */}
           <div className={styles.canvasWrap}>
@@ -633,6 +457,8 @@ export default function GamePage() {
               width={CANVAS_SIZE}
               height={CANVAS_SIZE}
               className={styles.canvas}
+              role="img"
+              aria-label={t("gameGuide") || "Snake game"}
             />
 
             {/* Countdown badge (3..2..1) */}
@@ -642,102 +468,26 @@ export default function GamePage() {
               </div>
             )}
 
-            {/* Idle / Game Over Overlay */}
-            {gameState !== "playing" && gameState !== "crashed" && gameState !== "starting" && (
-              <div className={styles.overlay}>
-                {gameState === "over" ? (
-                  rewardGift ? (
-                    isRouletteSpinning ? (
-                        <div style={{ padding: "2rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                          <h2 style={{ color: "#f8fafc", fontSize: "2rem", fontWeight: 800, marginBottom: "1.5rem" }}>{t("spinningReward")}</h2>
-                          <div style={{ width: "64px", height: "64px", borderRadius: "12px", background: THEMES[GLOWING_COLORS[rouletteColorIndex]].head, border: `2px solid ${THEMES[GLOWING_COLORS[rouletteColorIndex]].body}` }} />
-                        </div>
-                    ) : !rewardRevealed ? (
-                        <div style={{ padding: "2rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                          <div 
-                            style={{ cursor: "pointer", fontSize: "5rem", transition: "transform 0.2s ease" }}
-                            onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.1)"}
-                            onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
-                            onClick={() => {
-                               setIsRouletteSpinning(true);
-                               let ticks = 0;
-                               const maxTicks = 30;
-                               const interval = setInterval(() => {
-                                  ticks++;
-                                  setRouletteColorIndex(prev => (prev + 1) % GLOWING_COLORS.length);
-                                  if (ticks >= maxTicks) {
-                                     clearInterval(interval);
-                                     setIsRouletteSpinning(false);
-                                     setRewardRevealed(true);
-                                     setUnlockedAchievements(prev => {
-                                        const updated = new Set(prev);
-                                        updated.add(rewardGift);
-                                        return updated;
-                                     });
-                                  }
-                               }, 100);
-                            }}
-                          >🎁</div>
-                          <p style={{ color: "var(--accent-primary)", fontWeight: 600, fontSize: "1.1rem", marginTop: "1rem" }}>{t("clickToOpen")}</p>
-                        </div>
-                    ) : (
-                        <div style={{ padding: "1rem", display: "flex", flexDirection: "column", alignItems: "center", animation: "fadeInUp 0.5s ease-out" }}>
-                          <h2 style={{ color: "var(--accent-primary)", fontSize: "2rem", fontWeight: 800, marginBottom: "1.5rem" }}>{t("rewardUnlocked")}</h2>
-                          <div style={{ 
-                            width: "80px", height: "80px", borderRadius: "16px", 
-                            background: THEMES[rewardGift]?.head, 
-                            border: `2px solid ${THEMES[rewardGift]?.body}`,
-                            boxShadow: `0 0 20px ${THEMES[rewardGift]?.head}` 
-                          }} />
-                          <p style={{ marginTop: "1.5rem", fontWeight: "bold", fontSize: "1.3rem", color: "#f8fafc", textTransform: "uppercase", letterSpacing: "1px" }}>{t(`color_${rewardGift}`)}</p>
-                          <button className={styles.playBtn} style={{ marginTop: "2rem", padding: "0.8rem 2rem", fontSize: "1.1rem" }} onClick={() => setRewardGift(null)}>{t("awesomeBtn")}</button>
-                        </div>
-                    )
-                  ) : (
-                    <>
-                      <p className={styles.overlayTitle}>{t("gameOverTitle")}</p>
-                      <p className={styles.overlayScore}>
-                        {t("scoreLabel")} <span className={styles.overlayScoreValue}>{score}</span>
-                      </p>
-                      {isHost && bestScore > 0 && (
-                        <p className={styles.overlayScore} style={{ fontSize: "1.2rem", color: "#9ca3af", marginTop: "-0.5rem", marginBottom: "1.5rem" }}>
-                          {t("sessionBest")} <span className={styles.overlayScoreValue} style={{ fontSize: "1.2rem" }}>{bestScore}</span>
-                        </p>
-                      )}
-                      {isHost && (score > 0 || bestScore > 0) && (
-                        <p className={styles.hostPrompt}>
-                          <button type="button" className={styles.hostPromptLink} onClick={() => goToAuth("login")}>{t("logIn")}</button>{" "}
-                          {t("hostPromptOr")}{" "}
-                          <button type="button" className={styles.hostPromptLink} onClick={() => goToAuth("register")}>{t("register")}</button>{" "}
-                          {t("hostPromptSuffix")}
-                        </p>
-                      )}
-                    </>
-                  )
-                ) : (
-                  <p className={styles.overlayTitle}>🐍 Snake</p>
-                )}
-
-                {gameState !== "starting" && (!rewardGift || rewardRevealed) && (
-                  !globalDate ? (
-                    <button className={styles.playBtn} disabled id="btn-play">
-                      {t("loadingMap")}
-                    </button>
-                  ) : canPlay ? (
-                    <button className={styles.playBtn} onClick={startGame} id="btn-play">
-                      {gameState === "over" ? t("playAgainBtn") : t("startBtn")}
-                    </button>
-                  ) : (
-                    <div className={styles.noAttempts}>
-                      <p>{t("noAttemptsToday")}</p>
-                      <p className={styles.noAttemptsHighlight}>
-                        {t("noAttemptsTomorrow")}
-                      </p>
-                    </div>
-                  )
-                )}
-              </div>
-            )}
+            {/* Idle / Game Over / Reward overlay */}
+            <GameOverlay
+              gameState={gameState}
+              score={score}
+              isHost={isHost}
+              bestScore={bestScore}
+              globalDate={globalDate}
+              canPlay={canPlay}
+              startGame={startGame}
+              goToAuth={goToAuth}
+              rewardGift={rewardGift}
+              isRouletteSpinning={isRouletteSpinning}
+              rouletteColorIndex={rouletteColorIndex}
+              rewardRevealed={rewardRevealed}
+              setIsRouletteSpinning={setIsRouletteSpinning}
+              setRouletteColorIndex={setRouletteColorIndex}
+              setRewardRevealed={setRewardRevealed}
+              setUnlockedAchievements={setUnlockedAchievements}
+              setRewardGift={setRewardGift}
+            />
 
             {/* Touch D-pad (mobile only) */}
             {gameState === "playing" && (
@@ -746,7 +496,7 @@ export default function GamePage() {
                   type="button"
                   className={`${styles.dpadBtn} ${styles.dpadUp}`}
                   data-cy="dpad-up"
-                  aria-label={t("controlsPrefix")}
+                  aria-label="Move snake up"
                   onTouchStart={(e) => { e.preventDefault(); changeDirection("UP"); }}
                 >
                   &lt;
@@ -755,7 +505,7 @@ export default function GamePage() {
                   type="button"
                   className={`${styles.dpadBtn} ${styles.dpadLeft}`}
                   data-cy="dpad-left"
-                  aria-label={t("controlsPrefix")}
+                  aria-label="Move snake left"
                   onTouchStart={(e) => { e.preventDefault(); changeDirection("LEFT"); }}
                 >
                   &lt;
@@ -764,7 +514,7 @@ export default function GamePage() {
                   type="button"
                   className={`${styles.dpadBtn} ${styles.dpadRight}`}
                   data-cy="dpad-right"
-                  aria-label={t("controlsPrefix")}
+                  aria-label="Move snake right"
                   onTouchStart={(e) => { e.preventDefault(); changeDirection("RIGHT"); }}
                 >
                   &gt;
@@ -773,7 +523,7 @@ export default function GamePage() {
                   type="button"
                   className={`${styles.dpadBtn} ${styles.dpadDown}`}
                   data-cy="dpad-down"
-                  aria-label={t("controlsPrefix")}
+                  aria-label="Move snake down"
                   onTouchStart={(e) => { e.preventDefault(); changeDirection("DOWN"); }}
                 >
                   &gt;
@@ -807,7 +557,7 @@ export default function GamePage() {
             {(() => {
               const visible = ACHIEVEMENTS.filter(a => !unlockedAchievements.has(a.id));
               if (visible.length === 0) {
-                return <AllAchievementsUnlockedMsg t={t} />;
+                return <AllAchievementsUnlockedMsg />;
               }
               return (
                 <>
@@ -815,13 +565,13 @@ export default function GamePage() {
                     {visible.map((ach, index) => {
                       if (!showAllGameAchievements && index >= 3) return null;
                       return (
-                        <AchievementListItem key={ach.id} ach={ach} t={t} styles={styles} />
+                        <AchievementListItem key={ach.id} ach={ach} />
                       );
                     })}
                   </ul>
                   {visible.length > 3 && (
                     <button
-                      style={{ display: "block", width: "100%", padding: "0.5rem", margin: "0.5rem 0", background: "rgba(19,35,48,0.05)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-md)", color: "var(--text-secondary)", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer" }}
+                      className={styles.gameShowMoreBtn}
                       onClick={() => {
                         if (showAllGameAchievements) {
                           document.getElementById('game-achievements-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -880,10 +630,10 @@ export default function GamePage() {
                               {entry.name.charAt(0).toUpperCase()}
                             </span>
                           )}
-                          <div style={{ display: "flex", flexDirection: "row", alignItems: "baseline", flex: 1, gap: "0.5rem" }}>
-                            <span className={styles.lbName} style={{ flex: "none" }}>{entry.name}</span>
+                          <div className={styles.lbNameRow}>
+                            <span className={`${styles.lbName} ${styles.lbNameInline}`}>{entry.name}</span>
                             {entry.title && (
-                              <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontWeight: 500 }}>
+                              <span className={styles.lbEntryTitle}>
                                 {t(`title_${entry.title}`)}
                               </span>
                             )}

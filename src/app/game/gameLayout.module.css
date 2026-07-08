@@ -155,7 +155,7 @@
   font-weight: 800;
   line-height: 1;
   margin: 0;
-  color: #f8fafc;
+  color: var(--text-on-dark);
   text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
 }
 
@@ -177,7 +177,7 @@
 .overlayTitle {
   font-size: 2rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--text-on-dark);
   margin-bottom: var(--space-sm);
 }
 
@@ -310,19 +310,16 @@
   gap: var(--space-md);
 }
 
-/* Game guide card — never shrinks */
 .guideCard {
   flex-shrink: 0;
 }
 
-/* Scrollable achievements list inside the desktop info panel. */
 .achList {
   overflow-y: auto;
   flex: 1;
   min-height: 0;
 }
 
-/* Desktop achievements card stretches to fill remaining space */
 .achCard {
   display: flex;
   flex-direction: column;
@@ -331,7 +328,6 @@
   min-height: 0;
 }
 
-/* Single info box with bullet points (no dividing lines). */
 .infoList {
   list-style: none;
   margin: 0;
@@ -404,8 +400,6 @@
   margin: 0;
 }
 
-/* Sizes to its own content (like .lbList) unless page.js measures that it
-   would push the column taller than the game board. */
 .lbListScrollable {
   list-style: none;
   padding: 0;
@@ -427,7 +421,7 @@
 }
 
 .lbItem:hover {
-  background: rgba(19, 35, 48, 0.03);
+  background: var(--bg-glass);
 }
 
 .lbItemHighlight {
@@ -536,6 +530,58 @@
   z-index: 100;
 }
 
+.navBrandStatic {
+  pointer-events: none;
+}
+
+.navBrandLogo {
+  object-fit: contain;
+  width: clamp(60px, 8vw, 100px);
+  height: auto;
+  pointer-events: none;
+}
+
+.infoDotYellow {
+  background: var(--accent-warm);
+}
+
+.infoDotRed {
+  background: var(--accent-danger);
+}
+
+.gameShowMoreBtn {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Leaderboard row: name + equipped title tag next to it. */
+.lbNameRow {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  flex: 1;
+  gap: 0.5rem;
+}
+
+.lbNameInline {
+  flex: none;
+}
+
+.lbEntryTitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
 @media (max-width: 540px) {
   .gamePage {
     padding-left: var(--space-sm);
@@ -544,7 +590,6 @@
 }
 
 /* === Achievement unlock toast === */
-/* Fixed to the viewport, impossible to miss during gameplay. */
 @keyframes achievementToastIn {
   from { opacity: 0; transform: translate(-50%, -16px) scale(0.96); }
   to { opacity: 1; transform: translate(-50%, 0) scale(1); }
@@ -601,4 +646,35 @@
   font-size: 0.8rem;
   color: var(--text-secondary);
   line-height: 1.3;
+}
+
+/* === Focus Visible === */
+.playBtn:focus-visible,
+.hostPromptLink:focus-visible,
+.dpadBtn:focus-visible,
+.navLink:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* === Reduced Motion === */
+@media (prefers-reduced-motion: reduce) {
+  .gamePage,
+  .gameSection,
+  .leaderboardSection,
+  .infoSection,
+  .countdownOverlay,
+  .overlay,
+  .achievementToast {
+    animation: none;
+  }
+
+  .heart:hover {
+    transform: none;
+  }
+
+  .playBtn:hover,
+  .playBtn:active {
+    transform: none;
+  }
 }

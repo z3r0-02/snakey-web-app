@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
+import { mapUserRow } from "@/lib/user";
 
 export async function PUT(request) {
   try {
@@ -34,7 +35,7 @@ export async function PUT(request) {
 
     // Fetch the updated user row to return to client so they can update localStorage
     const updatedRes = await db.execute({
-      sql: "SELECT id, first_name, last_name, email, username, gender, dob, country, avatar FROM users WHERE id = ?",
+      sql: "SELECT * FROM users WHERE id = ?",
       args: [actualUserId],
     });
 
@@ -42,21 +43,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: "Failed to fetch updated user." }, { status: 500 });
     }
 
-    const row = updatedRes.rows[0];
-    const user = {
-      id: row.id,
-      firstName: row.first_name,
-      lastName: row.last_name,
-      name: `${row.first_name} ${row.last_name}`,
-      email: row.email,
-      username: row.username,
-      gender: row.gender,
-      dob: row.dob,
-      country: row.country,
-      avatar: row.avatar,
-    };
-
-    return NextResponse.json({ user });
+    return NextResponse.json({ user: mapUserRow(updatedRes.rows[0]) });
   } catch (err) {
     console.error("Profile PUT error:", err);
     return NextResponse.json(

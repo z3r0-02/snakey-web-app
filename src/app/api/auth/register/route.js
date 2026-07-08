@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { initDb } from "@/lib/db";
 import { isValidEmail, getPasswordError } from "@/lib/validation";
+import { mapUserRow } from "@/lib/user";
+import { BCRYPT_SALT_ROUNDS } from "@/lib/constants";
 
 export async function POST(request) {
   try {
@@ -44,29 +46,25 @@ export async function POST(request) {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     // Insert user
-    const name = `${firstName} ${lastName}`.trim();
     const result = await db.execute({
       sql: `INSERT INTO users (first_name, last_name, email, gender, dob, country, password)
             VALUES (?, ?, ?, ?, ?, ?, ?)`,
       args: [firstName, lastName, email, gender || null, dob || null, country || null, hashedPassword],
     });
 
+    // Read the row back so the response has the canonical user shape.
+    const inserted = await db.execute({
+      sql: "SELECT * FROM users WHERE id = ?",
+      args: [Number(result.lastInsertRowid)],
+    });
+
     return NextResponse.json(
       {
         message: "Account created successfully!",
-        user: {
-          id: Number(result.lastInsertRowid),
-          name,
-          firstName,
-          lastName,
-          email,
-          gender,
-          dob,
-          country,
-        },
+        user: mapUserRow(inserted.rows[0]),
       },
       { status: 201 }
     );

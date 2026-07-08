@@ -86,23 +86,6 @@
   animation: gradient-shift 4s ease infinite;
 }
 
-/* === Logo / Icon === */
-.logoWrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 72px;
-  height: 72px;
-  border-radius: var(--radius-lg);
-  background: var(--gradient-primary);
-  margin-bottom: var(--space-xl);
-  box-shadow: 0 2px 12px rgba(61, 220, 132, 0.18);
-}
-
-.logoIcon {
-  font-size: 2rem;
-  line-height: 1;
-}
 
 /* === Typography === */
 .title {

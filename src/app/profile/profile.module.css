@@ -223,7 +223,7 @@
   font-size: 2.2rem;
   font-weight: 700;
   color: var(--on-accent);
-  border: 4px solid #ffffff;
+  border: 4px solid var(--bg-card);
   box-shadow: 0 4px 16px rgba(16, 40, 30, 0.18);
 }
 
@@ -231,7 +231,7 @@
   width: 96px;
   height: 96px;
   border-radius: var(--radius-full);
-  border: 4px solid #ffffff;
+  border: 4px solid var(--bg-card);
   box-shadow: 0 4px 16px rgba(16, 40, 30, 0.18);
   object-fit: cover;
 }
@@ -267,7 +267,7 @@
 
 .badgeUser {
   background: rgba(61, 220, 132, 0.14);
-  color: #15803d;
+  color: var(--color-success);
   border: 1px solid rgba(61, 220, 132, 0.3);
 }
 
@@ -395,6 +395,266 @@
   .avatarWrap {
     left: var(--space-xl);
   }
+}
+
+/* === Nav brand logo === */
+.navBrandLogo {
+  object-fit: contain;
+  width: clamp(60px, 8vw, 100px);
+  height: auto;
+}
+
+/* === Country flag next to the display name === */
+.flagInline {
+  margin-left: 0.5rem;
+  font-size: 1.2rem;
+  vertical-align: middle;
+}
+
+.flagEmoji {
+  margin-left: 0.5rem;
+  font-size: 1.2rem;
+}
+
+/* === Details header (title + edit button) === */
+.detailsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.detailsTitleFlush {
+  margin: 0;
+}
+
+.editBtn {
+  background: rgba(19, 35, 48, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.editBtn:hover {
+  color: var(--text-primary);
+  background: rgba(19, 35, 48, 0.1);
+}
+
+/* === Edit form === */
+.editForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.editField {
+  width: 100%;
+  max-width: 220px;
+  position: relative;
+}
+
+.editFieldTop {
+  z-index: 12;
+}
+
+.editFieldMid {
+  z-index: 11;
+}
+
+.editFieldBot {
+  z-index: 10;
+}
+
+.editRowLast {
+  border-bottom: none;
+}
+
+.editActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  justify-content: flex-end;
+}
+
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.saveBtn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: var(--text-accent);
+  color: white;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* === Achievements card (left column) === */
+.achHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.achHeaderTitle {
+  margin-bottom: 0;
+}
+
+.achCounter {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.achScroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  min-height: 0;
+}
+
+.achRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(19, 35, 48, 0.03);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.achRowHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.achRowName {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.achLockIcon {
+  opacity: 0.8;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  margin-top: 0.1rem;
+}
+
+.achRowDesc {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+/* === Colour + title customization (right column) === */
+.colorSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.colorGroups {
+  padding-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.colorGridTight {
+  margin-top: 0;
+  padding: 0 12px;
+  gap: 0.5rem;
+}
+
+.titleSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.titleSectionTitle {
+  margin: 0 0 1rem;
+}
+
+.titleFlexStart {
+  align-content: flex-start;
+}
+
+.noTitles {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* === Colour swatches === */
+.colorSwatchLocked {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.swatchLockIcon {
+  opacity: 0.8;
+}
+
+.colorSwatchInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.patternWizard {
+  width: 8px;
+  height: 8px;
+  background: #fef08a;
+  border-radius: 50%;
+}
+
+.patternDots {
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+}
+
+.patternLines {
+  width: 16px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.patternZigzag {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: bold;
+  line-height: 1;
 }
 
 .mobileShowMoreBtn {

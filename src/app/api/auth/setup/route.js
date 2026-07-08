@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
+import { mapUserRow } from "@/lib/user";
 
 export async function POST(request) {
   try {
@@ -61,22 +62,9 @@ export async function POST(request) {
       );
     }
 
-    const user = result.rows[0];
-
     return NextResponse.json({
       message: "Profile updated successfully!",
-      user: {
-        id: user.id,
-        name: user.username,
-        username: user.username,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        email: user.email,
-        gender: user.gender,
-        dob: user.dob,
-        country: user.country,
-        avatar: user.avatar,
-      },
+      user: mapUserRow(result.rows[0]),
     });
   } catch (err) {
     console.error("Setup error:", err);

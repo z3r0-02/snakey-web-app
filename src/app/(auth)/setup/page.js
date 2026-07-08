@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import styles from "../auth.module.css";
+import { REDIRECT_DELAY_MS } from "@/lib/constants";
 
 const AVATARS = [
   { id: "fox", src: "/avatars/fox.png", label: "Fox" },
@@ -28,7 +29,14 @@ export default function SetupPage() {
       router.push("/?view=register");
       return;
     }
-    const user = JSON.parse(raw);
+    let user;
+    try {
+      user = JSON.parse(raw);
+    } catch {
+      localStorage.removeItem("user");
+      router.push("/?view=register");
+      return;
+    }
     if (!user._pendingSetup) {
       router.push("/game");
       return;
@@ -94,7 +102,7 @@ export default function SetupPage() {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       setMessage({ type: "success", text: "Profile set up! Redirecting…" });
-      setTimeout(() => router.push("/game"), 600);
+      setTimeout(() => router.push("/game"), REDIRECT_DELAY_MS);
     } catch {
       setMessage({ type: "error", text: "Something went wrong. Please try again." });
       setLoading(false);

@@ -32,8 +32,8 @@ function ResetPasswordForm() {
       router.push("/?view=login");
       return;
     }
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
   }, [success, countdown, router]);
 
   function validate() {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import client, { initDb } from "@/lib/db";
+import { mapUserRow } from "@/lib/user";
 
 export async function PUT(request) {
   try {
@@ -29,7 +30,7 @@ export async function PUT(request) {
 
     // Return the updated user object
     const userRes = await db.execute({
-      sql: `SELECT id, first_name, last_name, email, username, gender, dob, country, avatar, active_title, active_snake_color, created_at FROM users WHERE id = ? OR username = ? OR email = ?`,
+      sql: `SELECT * FROM users WHERE id = ? OR username = ? OR email = ?`,
       args: [userId, userId, userId],
     });
 
@@ -37,24 +38,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
-    const updatedUser = userRes.rows[0];
-    const userMap = {
-      id: updatedUser.id,
-      firstName: updatedUser.first_name,
-      lastName: updatedUser.last_name,
-      email: updatedUser.email,
-      username: updatedUser.username,
-      name: updatedUser.username || updatedUser.first_name,
-      gender: updatedUser.gender,
-      dob: updatedUser.dob,
-      country: updatedUser.country,
-      avatar: updatedUser.avatar,
-      active_title: updatedUser.active_title,
-      active_snake_color: updatedUser.active_snake_color,
-      created_at: updatedUser.created_at,
-    };
-
-    return NextResponse.json({ user: userMap }, { status: 200 });
+    return NextResponse.json({ user: mapUserRow(userRes.rows[0]) }, { status: 200 });
   } catch (error) {
     console.error("Equip Profile Error:", error);
     return NextResponse.json(

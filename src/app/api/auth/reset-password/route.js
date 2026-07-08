@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { initDb } from "@/lib/db";
 import { getPasswordError } from "@/lib/validation";
+import { BCRYPT_SALT_ROUNDS } from "@/lib/constants";
 
 export async function POST(request) {
   try {
@@ -53,7 +54,7 @@ export async function POST(request) {
     }
 
     // Hash the new password and update the user
-    const hashed = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     await db.execute({
       sql: "UPDATE users SET password = ? WHERE id = ?",
