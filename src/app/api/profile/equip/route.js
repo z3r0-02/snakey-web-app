@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import client, { initDb } from "@/lib/db";
-import { mapUserRow } from "@/lib/user";
+import { initDb } from "@/lib/db";
+import { mapUserRow, userLookup } from "@/lib/user";
 
 export async function PUT(request) {
   try {
@@ -14,24 +14,27 @@ export async function PUT(request) {
       );
     }
 
-    let sql = "";
+    let dbColumn = "";
     if (type === "title") {
-      sql = `UPDATE users SET active_title = ? WHERE id = ? OR username = ? OR email = ?`;
+      dbColumn = "active_title";
     } else if (type === "color") {
-      sql = `UPDATE users SET active_snake_color = ? WHERE id = ? OR username = ? OR email = ?`;
+      dbColumn = "active_snake_color";
     } else {
       return NextResponse.json({ error: "Invalid type." }, { status: 400 });
     }
 
+    // Match only the column the identifier belongs to (id / username / email).
+    const lookup = userLookup(userId);
+
     await db.execute({
-      sql,
-      args: [value, userId, userId, userId],
+      sql: `UPDATE users SET ${dbColumn} = ? WHERE ${lookup.column} = ?`,
+      args: [value, lookup.value],
     });
 
     // Return the updated user object
     const userRes = await db.execute({
-      sql: `SELECT * FROM users WHERE id = ? OR username = ? OR email = ?`,
-      args: [userId, userId, userId],
+      sql: `SELECT * FROM users WHERE ${lookup.column} = ?`,
+      args: [lookup.value],
     });
 
     if (userRes.rows.length === 0) {

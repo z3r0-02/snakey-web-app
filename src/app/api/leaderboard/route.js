@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
+import { enforceRateLimit } from "@/lib/rateLimit";
 
 const LEADERBOARD_CACHE_HEADER = "public, max-age=0, s-maxage=15, stale-while-revalidate=30";
 
+// Helper to format a Date object for SQLite (YYYY-MM-DD HH:MM:SS)
 function formatForSqlite(date) {
   const pad = (n) => String(n).padStart(2, "0");
   return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} 00:00:00`;
@@ -77,7 +79,7 @@ export async function GET() {
     const db = await initDb();
     const leaderboards = await fetchLeaderboards(db);
     return NextResponse.json(leaderboards, {
-      headers: { "Cache-Control": LEADERBOARD_CACHE_HEADER },
+      headers: { "Cache-Control": LEADERBOARD_CACHE_HEADER }, // Cache for 15s, stale-while-revalidate for 30s
     });
   } catch (err) {
     console.error("Leaderboard GET error:", err);
@@ -89,6 +91,9 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  const limited = enforceRateLimit(request, "score", { limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const { userId, username, avatar, score } = await request.json();
 

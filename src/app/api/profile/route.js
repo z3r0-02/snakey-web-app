@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
-import { mapUserRow } from "@/lib/user";
+import { mapUserRow, userLookup } from "@/lib/user";
 
 export async function PUT(request) {
   try {
@@ -15,10 +15,11 @@ export async function PUT(request) {
 
     const db = await initDb();
 
-    // Verify user exists
+    // Verify user exists (match only the column the identifier belongs to)
+    const lookup = userLookup(userId);
     const userRes = await db.execute({
-      sql: "SELECT id FROM users WHERE id = ? OR username = ? OR email = ?",
-      args: [userId, userId, userId],
+      sql: `SELECT id FROM users WHERE ${lookup.column} = ?`,
+      args: [lookup.value],
     });
 
     if (userRes.rows.length === 0) {

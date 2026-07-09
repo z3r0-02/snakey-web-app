@@ -4,8 +4,12 @@ import { initDb } from "@/lib/db";
 import { isValidEmail, getPasswordError } from "@/lib/validation";
 import { mapUserRow } from "@/lib/user";
 import { BCRYPT_SALT_ROUNDS } from "@/lib/constants";
+import { enforceRateLimit } from "@/lib/rateLimit";
 
 export async function POST(request) {
+  const limited = enforceRateLimit(request, "register", { limit: 5, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const { firstName, lastName, email, gender, dob, country, password } =
       await request.json();
@@ -55,7 +59,7 @@ export async function POST(request) {
       args: [firstName, lastName, email, gender || null, dob || null, country || null, hashedPassword],
     });
 
-    // Read the row back so the response has the canonical user shape.
+    // Retrieve the inserted user
     const inserted = await db.execute({
       sql: "SELECT * FROM users WHERE id = ?",
       args: [Number(result.lastInsertRowid)],

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import client, { initDb } from "@/lib/db";
+import { initDb } from "@/lib/db";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 
 export async function POST(request) {

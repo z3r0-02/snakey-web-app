@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { Resend } from "resend";
 import { initDb } from "@/lib/db";
+import { enforceRateLimit } from "@/lib/rateLimit";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request) {
+  const limited = enforceRateLimit(request, "forgot-password", { limit: 4, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const { email } = await request.json();
 

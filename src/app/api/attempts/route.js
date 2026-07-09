@@ -17,6 +17,7 @@ export async function GET(request) {
 
     const db = await initDb();
 
+	// Fetch in parallel: num of attempts used today and the total number of distinct days played
     const [usedResult, daysResult] = await Promise.all([
       db.execute({
         sql: "SELECT used FROM attempts WHERE user_id = ? AND date = ?",

@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { initDb } from "@/lib/db";
 import { mapUserRow } from "@/lib/user";
+import { enforceRateLimit } from "@/lib/rateLimit";
 
 export async function POST(request) {
+  const limited = enforceRateLimit(request, "login", { limit: 10, windowMs: 60_000 });
+  if (limited) return limited;
+
   try {
     const { username, password } = await request.json();
 
