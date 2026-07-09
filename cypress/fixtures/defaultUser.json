@@ -1,0 +1,10 @@
+{
+  "firstName": "Test",
+  "lastName": "User",
+  "gender": "male",
+  "genderLabel": "Male",
+  "dob": "2000-01-01",
+  "dobInput": "01/01/2000",
+  "country": "Czechia",
+  "password": "GoodPass1"
+}
