@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import { useTranslation } from "@/lib/LanguageContext";
 import GlobalFlags from "@/components/GlobalFlags";
-import { GUEST_HOST_EMAIL, setHostSession } from "@/lib/constants";
+import { GUEST_HOST_EMAIL, setHostSession, isHostSession } from "@/lib/constants";
 
 export default function About() {
   const { t } = useTranslation();
@@ -27,10 +27,10 @@ export default function About() {
       if (raw && raw !== "null" && raw !== "undefined") {
         const user = JSON.parse(raw);
         if (user && (user.email || user.username)) {
-          setHasSession(true);
           if (user.email === GUEST_HOST_EMAIL) {
-            setHostSession(true);
+            if (isHostSession()) setHasSession(true);
           } else {
+            setHasSession(true);
             setIsLoggedIn(true);
           }
         }

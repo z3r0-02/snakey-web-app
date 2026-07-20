@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
-import { ACHIEVEMENTS } from "@/lib/achievements";
+import { ACHIEVEMENTS, THEMES } from "@/lib/achievements";
+import { isValidScore } from "@/lib/validation";
 
 export async function POST(request) {
   try {
     const db = await initDb();
-    const { userId, score, crashReason, date, activeColor } = await request.json();
+    const { userId, score: rawScore, crashReason, activeColor } = await request.json();
 
     if (!userId) {
       return NextResponse.json({ error: "userId is required." }, { status: 400 });
     }
+
+    const score = isValidScore(rawScore) ? rawScore : 0;
 
     // 1. Fetch user's current unlocked achievements
     const achRes = await db.execute({
@@ -59,7 +62,6 @@ export async function POST(request) {
     // 6. Evaluate un-unlocked achievements
     const newlyUnlocked = [];
 
-    // Helper to unlock
     const unlock = async (id) => {
       if (!unlockedIds.has(id)) {
         newlyUnlocked.push(id);
@@ -70,24 +72,17 @@ export async function POST(request) {
           args: [userId, id],
         });
 
-        // Unlock associated rewards automatically
         const achDef = ACHIEVEMENTS.find(a => a.id === id);
         if (achDef) {
-          if (achDef.rewardValue && !unlockedIds.has(achDef.rewardValue)) {
-            newlyUnlocked.push(achDef.rewardValue);
-            unlockedIds.add(achDef.rewardValue);
-            await db.execute({
-              sql: `INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)`,
-              args: [userId, achDef.rewardValue],
-            });
-          }
-          if (achDef.rewardValue2 && !unlockedIds.has(achDef.rewardValue2)) {
-            newlyUnlocked.push(achDef.rewardValue2);
-            unlockedIds.add(achDef.rewardValue2);
-            await db.execute({
-              sql: `INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)`,
-              args: [userId, achDef.rewardValue2],
-            });
+          for (const value of [achDef.rewardValue, achDef.rewardValue2]) {
+            if (value && THEMES[value] && !unlockedIds.has(value)) {
+              newlyUnlocked.push(value);
+              unlockedIds.add(value);
+              await db.execute({
+                sql: `INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)`,
+                args: [userId, value],
+              });
+            }
           }
         }
       }

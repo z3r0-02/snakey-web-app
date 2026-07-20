@@ -8,14 +8,6 @@
   z-index: 1;
 }
 
-.authStack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-md);
-  width: 100%;
-}
-
 .authCard {
   width: 100%;
   max-width: 440px;
@@ -29,10 +21,6 @@
   animation: fadeInUp 0.7s var(--ease-out) both;
   position: relative;
   overflow: visible;
-}
-
-.authCardWide {
-  max-width: 540px;
 }
 
 .formRow {
@@ -356,7 +344,7 @@
 }
 
 .dpNav:hover {
-  background: rgba(19, 35, 48, 0.05);
+  background: var(--bg-hover);
 }
 
 .dpNav:disabled {
@@ -377,7 +365,7 @@
 }
 
 .dpTitle:hover {
-  background: rgba(19, 35, 48, 0.05);
+  background: var(--bg-hover);
 }
 
 .dpWeekdays,

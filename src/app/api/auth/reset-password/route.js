@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { initDb } from "@/lib/db";
-import { getPasswordError } from "@/lib/validation";
+import { getPasswordError, RESET_TOKEN_ERROR_CODES } from "@/lib/validation";
 import { BCRYPT_SALT_ROUNDS } from "@/lib/constants";
 
 export async function POST(request) {
@@ -10,7 +10,7 @@ export async function POST(request) {
 
     if (!token || !password) {
       return NextResponse.json(
-        { error: "Token and new password are required." },
+        { error: RESET_TOKEN_ERROR_CODES.MISSING_FIELDS },
         { status: 400 }
       );
     }
@@ -30,7 +30,7 @@ export async function POST(request) {
 
     if (result.rows.length === 0) {
       return NextResponse.json(
-        { error: "This reset link is invalid or has already been used." },
+        { error: RESET_TOKEN_ERROR_CODES.INVALID_TOKEN },
         { status: 400 }
       );
     }
@@ -40,7 +40,7 @@ export async function POST(request) {
     // Check if already used
     if (row.used) {
       return NextResponse.json(
-        { error: "This reset link has already been used." },
+        { error: RESET_TOKEN_ERROR_CODES.ALREADY_USED },
         { status: 400 }
       );
     }
@@ -48,7 +48,7 @@ export async function POST(request) {
     // Check expiry
     if (new Date(row.expires_at) < new Date()) {
       return NextResponse.json(
-        { error: "This reset link has expired. Please request a new one." },
+        { error: RESET_TOKEN_ERROR_CODES.EXPIRED },
         { status: 400 }
       );
     }

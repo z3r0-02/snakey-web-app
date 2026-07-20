@@ -1,6 +1,27 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
 import { mapUserRow, userLookup } from "@/lib/user";
+import { ACHIEVEMENTS, THEMES } from "@/lib/achievements";
+
+function ownsItem(type, value, unlockedIds) {
+  if (type === "color") {
+    if (value === "default") return true;
+    if (!THEMES[value]) return false;
+    if (unlockedIds.has(value)) return true;
+    return ACHIEVEMENTS.some(
+      (a) =>
+        unlockedIds.has(a.id) &&
+        (a.rewardType === "color" || a.rewardType === "both") &&
+        a.rewardValue === value
+    );
+  }
+  return ACHIEVEMENTS.some(
+    (a) =>
+      unlockedIds.has(a.id) &&
+      ((a.rewardType === "title" && a.rewardValue === value) ||
+        (a.rewardType === "both" && a.rewardValue2 === value))
+  );
+}
 
 export async function PUT(request) {
   try {
@@ -25,13 +46,6 @@ export async function PUT(request) {
 
     // Match only the column the identifier belongs to (id / username / email).
     const lookup = userLookup(userId);
-
-    await db.execute({
-      sql: `UPDATE users SET ${dbColumn} = ? WHERE ${lookup.column} = ?`,
-      args: [value, lookup.value],
-    });
-
-    // Return the updated user object
     const userRes = await db.execute({
       sql: `SELECT * FROM users WHERE ${lookup.column} = ?`,
       args: [lookup.value],
@@ -40,8 +54,34 @@ export async function PUT(request) {
     if (userRes.rows.length === 0) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
+    const userRow = userRes.rows[0];
 
-    return NextResponse.json({ user: mapUserRow(userRes.rows[0]) }, { status: 200 });
+    // Only allow equipping items the user has actually unlocked.
+    const achRes = await db.execute({
+      sql: "SELECT achievement_id FROM user_achievements WHERE user_id = ?",
+      args: [userRow.id],
+    });
+    const unlockedIds = new Set(achRes.rows.map((r) => r.achievement_id));
+
+    if (!ownsItem(type, value, unlockedIds)) {
+      return NextResponse.json(
+        { error: "Item not unlocked." },
+        { status: 403 }
+      );
+    }
+
+    await db.execute({
+      sql: `UPDATE users SET ${dbColumn} = ? WHERE id = ?`,
+      args: [value, userRow.id],
+    });
+
+    // Return the updated user object
+    const updatedRes = await db.execute({
+      sql: "SELECT * FROM users WHERE id = ?",
+      args: [userRow.id],
+    });
+
+    return NextResponse.json({ user: mapUserRow(updatedRes.rows[0]) }, { status: 200 });
   } catch (error) {
     console.error("Equip Profile Error:", error);
     return NextResponse.json(

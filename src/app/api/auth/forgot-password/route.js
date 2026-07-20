@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { Resend } from "resend";
 import { initDb } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rateLimit";
+import { AUTH_ERROR_CODES } from "@/lib/validation";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -14,7 +15,7 @@ export async function POST(request) {
     const { email } = await request.json();
 
     if (!email) {
-      return NextResponse.json({ error: "Email is required." }, { status: 400 });
+      return NextResponse.json({ error: AUTH_ERROR_CODES.FORGOT_PASSWORD_MISSING_EMAIL }, { status: 400 });
     }
 
     const db = await initDb();

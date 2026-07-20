@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
 import { GLOWING_COLORS } from "@/lib/achievements";
+import { isValidScore } from "@/lib/validation";
 
 export async function POST(request) {
   try {
-    const { userId, date, finalScore } = await request.json();
+    const { userId, date, finalScore: rawFinalScore } = await request.json();
 
     if (!userId || !date) {
       return NextResponse.json({ error: "userId and date are required" }, { status: 400 });
     }
+
+    // Ignore an implausible/forged final score
+    const finalScore = isValidScore(rawFinalScore) ? rawFinalScore : 0;
 
     const db = await initDb();
 
@@ -48,6 +52,19 @@ export async function POST(request) {
 
     if (availableColors.length === 0) {
       return NextResponse.json({ success: false, reason: "all_colors_unlocked" });
+    }
+
+    // One roulette spin per user per day.
+    try {
+      await db.execute({
+        sql: "INSERT INTO reward_claims (user_id, date) VALUES (?, ?)",
+        args: [userId, date],
+      });
+    } catch (e) {
+      if (/UNIQUE constraint failed/i.test(e.message)) {
+        return NextResponse.json({ success: false, reason: "already_claimed" });
+      }
+      throw e;
     }
 
     // Pick a random color

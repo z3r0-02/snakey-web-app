@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { initDb } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rateLimit";
+import { isValidScore } from "@/lib/validation";
 
 const LEADERBOARD_CACHE_HEADER = "public, max-age=0, s-maxage=15, stale-while-revalidate=30";
 
@@ -74,13 +75,47 @@ async function fetchLeaderboards(db) {
   };
 }
 
-export async function GET() {
+// A user's true best score and rank, independent of the top-10 cap on overall.
+async function fetchPersonalStats(db, userId) {
+  const bestRes = await db.execute({
+    sql: "SELECT MAX(score) as best FROM scores WHERE user_id = ?",
+    args: [userId],
+  });
+  const personalBest = bestRes.rows[0]?.best;
+
+  if (personalBest === null || personalBest === undefined) {
+    return { personalBest: 0, personalRank: null };
+  }
+
+  const rankRes = await db.execute({
+    sql: `
+      SELECT COUNT(*) + 1 as rank
+      FROM (SELECT user_id, MAX(score) as best FROM scores GROUP BY user_id) ub
+      WHERE ub.best > ?
+    `,
+    args: [personalBest],
+  });
+
+  return { personalBest, personalRank: rankRes.rows[0]?.rank ?? null };
+}
+
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
+
     const db = await initDb();
     const leaderboards = await fetchLeaderboards(db);
-    return NextResponse.json(leaderboards, {
-      headers: { "Cache-Control": LEADERBOARD_CACHE_HEADER }, // Cache for 15s, stale-while-revalidate for 30s
-    });
+
+    if (!userId) {
+      return NextResponse.json(leaderboards, {
+        headers: { "Cache-Control": LEADERBOARD_CACHE_HEADER }, // Cache for 15s, stale-while-revalidate for 30s
+      });
+    }
+
+    // Personalized response
+    const personal = await fetchPersonalStats(db, userId);
+    return NextResponse.json({ ...leaderboards, ...personal });
   } catch (err) {
     console.error("Leaderboard GET error:", err);
     return NextResponse.json(
@@ -104,6 +139,10 @@ export async function POST(request) {
       );
     }
 
+    if (!isValidScore(score)) {
+      return NextResponse.json({ error: "Invalid score." }, { status: 400 });
+    }
+
     const db = await initDb();
 
     await db.execute({
@@ -111,8 +150,11 @@ export async function POST(request) {
       args: [userId, username, avatar || null, score],
     });
 
-    const leaderboards = await fetchLeaderboards(db);
-    return NextResponse.json(leaderboards, { status: 201 });
+    const [leaderboards, personal] = await Promise.all([
+      fetchLeaderboards(db),
+      fetchPersonalStats(db, userId),
+    ]);
+    return NextResponse.json({ ...leaderboards, ...personal }, { status: 201 });
   } catch (err) {
     console.error("Leaderboard POST error:", err);
     return NextResponse.json(
