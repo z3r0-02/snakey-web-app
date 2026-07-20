@@ -4,6 +4,7 @@ import { useState, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/LanguageContext";
 import { setHostSession } from "@/lib/constants";
+import { AUTH_ERROR_LOCALE_KEYS } from "@/lib/validation";
 import styles from "./AuthDropdown.module.css";
 
 export default function AuthDropdown({ onLoginSuccess }) {
@@ -78,11 +79,7 @@ export default function AuthDropdown({ onLoginSuccess }) {
         setShowDropdown(false);
         onLoginSuccess(data.user);
       } else {
-        setError(
-          data.error === "Invalid username or password."
-            ? "errInvalidCreds"
-            : data.error
-        );
+        setError(AUTH_ERROR_LOCALE_KEYS[data.error] || data.error);
       }
     } catch {
       setError("somethingWentWrong");

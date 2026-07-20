@@ -57,7 +57,7 @@ const COLORS = {
 // Seeded PRNG
 function mulberry32(a) {
   return function () {
-    var t = (a += 0x6d2b79f5);
+    let t = (a += 0x6d2b79f5);
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -171,18 +171,25 @@ function generateDailyWalls(dateStr) {
 }
 
 function getRandomFood(snake, walls, otherFood = null) {
-  let pos;
-  do {
-    pos = {
-      x: Math.floor(Math.random() * GRID_SIZE),
-      y: Math.floor(Math.random() * GRID_SIZE),
-    };
-  } while (
-    snake.some((s) => s.x === pos.x && s.y === pos.y) ||
-    walls.some((w) => w.x === pos.x && w.y === pos.y) ||
-    (otherFood && otherFood.x === pos.x && otherFood.y === pos.y)
-  );
-  return pos;
+  const occupied = (x, y) =>
+    snake.some((s) => s.x === x && s.y === y) ||
+    walls.some((w) => w.x === x && w.y === y) ||
+    (otherFood && otherFood.x === x && otherFood.y === y);
+
+  const MAX_TRIES = GRID_SIZE * GRID_SIZE;
+  for (let i = 0; i < MAX_TRIES; i++) {
+    const x = Math.floor(Math.random() * GRID_SIZE);
+    const y = Math.floor(Math.random() * GRID_SIZE);
+    if (!occupied(x, y)) return { x, y };
+  }
+
+  // Fallback: scan for the first free cell
+  for (let y = 0; y < GRID_SIZE; y++) {
+    for (let x = 0; x < GRID_SIZE; x++) {
+      if (!occupied(x, y)) return { x, y };
+    }
+  }
+  return null;
 }
 
 // --- Canvas drawing helpers ---
@@ -202,6 +209,7 @@ function drawGrid(ctx) {
 }
 
 function drawFood(ctx, food) {
+  if (!food) return;
   const fx = food.x * CELL_SIZE + CELL_SIZE / 2;
   const fy = food.y * CELL_SIZE + CELL_SIZE / 2;
   const gradient = ctx.createRadialGradient(fx, fy, 2, fx, fy, CELL_SIZE * 1.5);
@@ -377,6 +385,8 @@ function drawScore(ctx, score) {
 export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId }) {
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
+  const blinkIntervalRef = useRef(null);
+  const gameOverTimeoutRef = useRef(null);
   const directionRef = useRef(DIRECTION.RIGHT);
   const nextDirectionRef = useRef(DIRECTION.RIGHT);
   const snakeRef = useRef([
@@ -434,28 +444,37 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
     head.x += dir.x;
     head.y += dir.y;
 
+    const now = Date.now();
+
+    // Handle special food expiration
+    if (specialFoodRef.current && now > specialFoodRef.current.expiresAt) {
+      specialFoodRef.current = null;
+    }
+
     const handleCrash = (reason) => {
       gameStateRef.current = "crashed";
       setGameState("crashed");
       clearInterval(gameLoopRef.current);
-      
+
       let blinkCount = 0;
       let isVisible = false;
       draw(isVisible); // Initial blink off
-      
-      const blinkInterval = setInterval(() => {
+
+      blinkIntervalRef.current = setInterval(() => {
         blinkCount++;
         isVisible = !isVisible;
         draw(isVisible);
 
         if (blinkCount >= CRASH_BLINK_COUNT) {
-          clearInterval(blinkInterval);
+          clearInterval(blinkIntervalRef.current);
+          blinkIntervalRef.current = null;
           draw(true);
 
-          setTimeout(() => {
+          gameOverTimeoutRef.current = setTimeout(() => {
             onGameOver(scoreRef.current, reason);
             gameStateRef.current = "over";
             setGameState("over");
+            gameOverTimeoutRef.current = null;
           }, GAME_OVER_DELAY_MS);
         }
       }, CRASH_BLINK_INTERVAL_MS);
@@ -478,8 +497,15 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
       return;
     }
 
-    // Self collision
-    if (snake.some((s) => s.x === head.x && s.y === head.y)) {
+    const eatsFood = !!(foodRef.current && head.x === foodRef.current.x && head.y === foodRef.current.y);
+    const eatsSpecialFood = !eatsFood && !!(
+      specialFoodRef.current && head.x === specialFoodRef.current.x && head.y === specialFoodRef.current.y
+    );
+    const willGrow = eatsFood || eatsSpecialFood;
+
+    // Self collision — exclude the tail cell when it's about to move out of the way
+    const bodyToCheck = willGrow ? snake : snake.slice(0, -1);
+    if (bodyToCheck.some((s) => s.x === head.x && s.y === head.y)) {
       handleCrash("self");
       return;
     }
@@ -487,25 +513,20 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
     snake.unshift(head);
 
     const prevLength = snakeRef.current.length;
-    const now = Date.now();
-
-    // Handle special food expiration
-    if (specialFoodRef.current && now > specialFoodRef.current.expiresAt) {
-      specialFoodRef.current = null;
-    }
 
     // Eat food
-    const food = foodRef.current;
-    if (head.x === food.x && head.y === food.y) {
+    if (eatsFood) {
       scoreRef.current += FOOD_SCORE;
       setScore(scoreRef.current);
       foodRef.current = getRandomFood(snake, wallsRef.current, specialFoodRef.current);
 
       if (!specialFoodRef.current && Math.random() < SPECIAL_FOOD_SPAWN_CHANCE) {
         const sfPos = getRandomFood(snake, wallsRef.current, foodRef.current);
-        specialFoodRef.current = { ...sfPos, expiresAt: now + SPECIAL_FOOD_DURATION_MS };
+        if (sfPos) {
+          specialFoodRef.current = { ...sfPos, expiresAt: now + SPECIAL_FOOD_DURATION_MS };
+        }
       }
-    } else if (specialFoodRef.current && head.x === specialFoodRef.current.x && head.y === specialFoodRef.current.y) {
+    } else if (eatsSpecialFood) {
       scoreRef.current += SPECIAL_FOOD_SCORE;
       setScore(scoreRef.current);
       specialFoodRef.current = null;
@@ -516,10 +537,10 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
     snakeRef.current = snake;
 
     if (snake.length > prevLength) {
-      // Decrease tick time by SPEED_STEP_MS per food eaten (takes ~34 foods to hit max speed)
+      // Decrease tick time by SPEED_STEP_MS per food eaten (takes ~27 foods to hit max speed)
       const foodsEaten = snake.length - INITIAL_SNAKE_LENGTH;
       const newTickMs = Math.max(MIN_TICK_MS, START_TICK_MS - Math.floor(foodsEaten * SPEED_STEP_MS));
-      
+
       if (newTickMs !== tickMsRef.current) {
         tickMsRef.current = newTickMs;
         clearInterval(gameLoopRef.current);
@@ -678,6 +699,8 @@ export default function SnakeGame({ onGameOver, disabled, globalDateStr, themeId
   useEffect(() => {
     return () => {
       if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+      if (blinkIntervalRef.current) clearInterval(blinkIntervalRef.current);
+      if (gameOverTimeoutRef.current) clearTimeout(gameOverTimeoutRef.current);
     };
   }, []);
 

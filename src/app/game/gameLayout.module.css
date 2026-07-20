@@ -18,10 +18,6 @@
   composes: navBrand from "../../styles/nav.module.css";
 }
 
-.navLogo {
-  composes: navLogo from "../../styles/nav.module.css";
-}
-
 .navLinks {
   composes: navLinks from "../../styles/nav.module.css";
   composes: navLinksMobileWrap from "../../styles/nav.module.css";

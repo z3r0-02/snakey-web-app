@@ -22,7 +22,7 @@
   color: var(--text-primary);
   width: 100%;
   font-size: 0.9rem;
-  transition: border-color 0.2s;
+  transition: border-color var(--transition-fast);
 }
 
 .inputError {
@@ -54,7 +54,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  margin-top: 0.25rem;
+  margin-top: var(--space-xs);
 }
 
 .submitBtn {
@@ -66,7 +66,7 @@
   cursor: pointer;
   font-weight: 600;
   width: 100%;
-  transition: transform 0.1s;
+  transition: transform var(--transition-fast);
 }
 
 .submitBtn:active:not(:disabled) {

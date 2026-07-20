@@ -9,19 +9,18 @@ import styles from "./gameLayout.module.css";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { useTranslation } from "@/lib/LanguageContext";
 import GlobalFlags from "@/components/GlobalFlags";
-import { GUEST_HOST_EMAIL, isHostSession } from "@/lib/constants";
+import { GUEST_HOST_EMAIL, isHostSession, MAX_ATTEMPTS } from "@/lib/constants";
 import { resolveUserId } from "@/lib/user";
 import AuthDropdown from "./AuthDropdown";
 import GameOverlay from "./GameOverlay";
 import { AllAchievementsUnlockedMsg, AchievementListItem } from "./AchievementItems";
-
-const MAX_ATTEMPTS = 3;
 
 function getUser() {
   try {
     const raw = localStorage.getItem("user");
     return raw ? JSON.parse(raw) : null;
   } catch {
+    // Corrupted or unavailable localStorage —> treat as logged out.
     return null;
   }
 }
@@ -89,6 +88,7 @@ export default function GamePage() {
 
   const leaderboardSectionRef = useRef(null);
   const allTimeListRef = useRef(null);
+  const gameAchSectionRef = useRef(null);
   const [allTimeListMaxHeight, setAllTimeListMaxHeight] = useState(null);
 
   useLayoutEffect(() => {
@@ -103,7 +103,7 @@ export default function GamePage() {
       // Mirrors .canvasWrap's own sizing formula in gameLayout.module.css
       const boardSize = Math.min(648, window.innerWidth, window.innerHeight - 13 * remPx);
       const cap = boardSize - 58;
-
+      // Cap the height of the achievements list and all-time leaderboard list so they don't overflow the game board.
       const capList = (sectionRef, listRef, setMaxHeight) => {
         const section = sectionRef.current;
         const list = listRef.current;
@@ -187,12 +187,7 @@ export default function GamePage() {
             if (!lbRes.ok) return;
             const lbData = await lbRes.json();
             setLeaderboard(lbData);
-
-            const userScores = lbData.overall.filter(
-              (e) => e.name === (user.name || user.email)
-            );
-            const best = userScores.length > 0 ? Math.max(...userScores.map((e) => e.score)) : 0;
-            setBestScore(best);
+            setBestScore(lbData.personalBest ?? 0);
           })
           .catch((err) => console.error("Failed to save score:", err));
       }
@@ -200,7 +195,7 @@ export default function GamePage() {
       fetch("/api/achievements/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, score: finalScore, crashReason, date: globalDate, activeColor: user?.activeSnakeColor || "default" }),
+        body: JSON.stringify({ userId, score: finalScore, crashReason, activeColor: user?.activeSnakeColor || "default" }),
       })
         .then(async (achRes) => {
           if (!achRes.ok) return;
@@ -252,12 +247,10 @@ export default function GamePage() {
         if (!lbRes.ok) return;
         return lbRes.json().then((lbData) => {
           setLeaderboard(lbData);
-          const userScores = lbData.overall.filter((e) => e.name === (u.name || u.email));
-          const best = userScores.length > 0 ? Math.max(...userScores.map((e) => e.score)) : 0;
-          setBestScore(best);
+          setBestScore(lbData.personalBest ?? 0);
         });
       };
-      const leaderboardPromise = fetch("/api/leaderboard")
+      const leaderboardPromise = fetch(`/api/leaderboard?userId=${encodeURIComponent(userId)}`)
         .then(applyLeaderboard)
         .catch((e) => console.error("Failed to fetch leaderboard:", e));
 
@@ -369,6 +362,7 @@ export default function GamePage() {
         </div>
       </nav>
 
+      {/* Game guide + achievements */}
       <div className={styles.content}>
         <div className={styles.infoSection} ref={infoSectionRef}>
           <div className={`${styles.lbCard} ${styles.guideCard}`}>
@@ -548,7 +542,7 @@ export default function GamePage() {
 
         {/* Achievements — mobile only, shown after game window */}
         {!isHost && (
-          <div className={`${styles.lbCard} ${styles.mobileOnly}`} style={{ width: "100%" }} id="game-achievements-section">
+          <div ref={gameAchSectionRef} className={`${styles.lbCard} ${styles.mobileOnly}`} style={{ width: "100%" }}>
             <div className={styles.lbHeader}>
               <h3 className={styles.lbTitle}>
                 <span>🏅</span> {t("achievementsTitle")}
@@ -574,7 +568,7 @@ export default function GamePage() {
                       className={styles.gameShowMoreBtn}
                       onClick={() => {
                         if (showAllGameAchievements) {
-                          document.getElementById('game-achievements-section')?.scrollIntoView({ behavior: 'smooth' });
+                          gameAchSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
                         }
                         setShowAllGameAchievements(!showAllGameAchievements);
                       }}
@@ -630,10 +624,10 @@ export default function GamePage() {
                               {entry.name.charAt(0).toUpperCase()}
                             </span>
                           )}
-                          <div className={styles.lbNameRow}>
+                          <div className={styles.lbNameRow} data-cy="lb-name-row">
                             <span className={`${styles.lbName} ${styles.lbNameInline}`}>{entry.name}</span>
                             {entry.title && (
-                              <span className={styles.lbEntryTitle}>
+                              <span className={styles.lbEntryTitle} data-cy="lb-entry-title">
                                 {t(`title_${entry.title}`)}
                               </span>
                             )}

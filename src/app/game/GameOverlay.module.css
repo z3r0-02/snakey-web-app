@@ -3,7 +3,7 @@
   font-size: 1.2rem;
   color: #9ca3af;
   margin-top: -0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-lg);
 }
 
 .sessionBestValue {
@@ -12,14 +12,14 @@
 
 /* --- Reward reveal --- */
 .rewardBox {
-  padding: 2rem;
+  padding: var(--space-xl);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .rewardBoxRevealed {
-  padding: 1rem;
+  padding: var(--space-md);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -30,13 +30,13 @@
   color: var(--text-on-dark);
   font-size: 2rem;
   font-weight: 800;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-lg);
 }
 
 .spinSwatch {
   width: 64px;
   height: 64px;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
 }
 
 .giftIcon {
@@ -53,14 +53,14 @@
   color: var(--accent-primary);
   font-weight: 600;
   font-size: 1.1rem;
-  margin-top: 1rem;
+  margin-top: var(--space-md);
 }
 
 .revealTitle {
   color: var(--accent-primary);
   font-size: 2rem;
   font-weight: 800;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-lg);
 }
 
 .revealSwatch {
@@ -70,7 +70,7 @@
 }
 
 .revealName {
-  margin-top: 1.5rem;
+  margin-top: var(--space-lg);
   font-weight: bold;
   font-size: 1.3rem;
   color: var(--text-on-dark);
@@ -80,7 +80,7 @@
 
 .awesomeBtn {
   composes: playBtn from "./gameLayout.module.css";
-  margin-top: 2rem;
+  margin-top: var(--space-xl);
   padding: 0.8rem 2rem;
   font-size: 1.1rem;
 }
