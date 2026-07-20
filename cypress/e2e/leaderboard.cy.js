@@ -13,7 +13,7 @@ describe("Leaderboard data", () => {
 
   it("shows a submitted score with the player's name on the game page", function () {
     cy.registerUser().then((user) => {
-      const score = 99999;
+      const score = 15000;
 
       cy.request("POST", "/api/leaderboard", {
         userId: user.id,
@@ -48,7 +48,7 @@ describe("Leaderboard data", () => {
         userId: user.id,
         username: user.username,
         avatar: user.avatar,
-        score: 99999,
+        score: 15000,
       })
         .its("status")
         .should("be.lessThan", 400);
@@ -70,7 +70,7 @@ describe("Leaderboard data", () => {
         userId: user.id,
         username: user.username,
         avatar: user.avatar,
-        score: 99999,
+        score: 15000,
       })
         .its("status")
         .should("be.lessThan", 400);
