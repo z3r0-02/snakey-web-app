@@ -8,12 +8,14 @@ export default function HostPage() {
   const router = useRouter();
 
   useEffect(() => {
-    localStorage.setItem(
-      "user",
-      JSON.stringify({ email: GUEST_HOST_EMAIL, name: "Host" })
-    );
-    // Mark an active guest host session. It survives client-side navigation
-    // but is wiped when the browser tab is closed (sessionStorage).
+    try {
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ email: GUEST_HOST_EMAIL, name: "Host" })
+      );
+    } catch {
+      // localStorage unavailable — can't start a guest session.
+    }
     setHostSession(true);
     router.replace("/game");
   }, [router]);

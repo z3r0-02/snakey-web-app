@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { useTranslation } from "@/lib/LanguageContext";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import styles from "./profile.module.css";
@@ -10,13 +11,14 @@ export default function ProfileAchievements({
   setShowAllAchievements,
 }) {
   const { t } = useTranslation();
+  const sectionRef = useRef(null);
 
   const unlockedCount = Array.from(unlockedAchievements).filter((id) =>
     ACHIEVEMENTS.find((a) => a.id === id)
   ).length;
 
   return (
-    <div className={styles.achievementsCard} id="achievements-section">
+    <div ref={sectionRef} className={styles.achievementsCard}>
       <div className={`${styles.details} ${styles.achievementsDetails}`}>
         <div className={styles.achHeader}>
           <h2 className={`${styles.detailsTitle} ${styles.achHeaderTitle}`}>
@@ -69,7 +71,7 @@ export default function ProfileAchievements({
               className={styles.mobileShowMoreBtn}
               onClick={() => {
                 if (showAllAchievements) {
-                  document.getElementById("achievements-section")?.scrollIntoView({ behavior: "smooth" });
+                  sectionRef.current?.scrollIntoView({ behavior: "smooth" });
                 }
                 setShowAllAchievements(!showAllAchievements);
               }}

@@ -7,7 +7,7 @@ import pageStyles from "@/app/page.module.css";
 import styles from "@/app/(auth)/auth.module.css";
 import PasswordInput from "@/components/auth/PasswordInput";
 import { useTranslation } from "@/lib/LanguageContext";
-import { PASSWORD_ERROR_LOCALE_KEYS } from "@/lib/validation";
+import { PASSWORD_ERROR_LOCALE_KEYS, RESET_TOKEN_ERROR_LOCALE_KEYS } from "@/lib/validation";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -75,10 +75,9 @@ function ResetPasswordForm() {
       if (res.ok) {
         setSuccess(true);
       } else {
-        // Server-side password re-check failed
-        const text = PASSWORD_ERROR_LOCALE_KEYS[data.error]
-          ? t(PASSWORD_ERROR_LOCALE_KEYS[data.error])
-          : data.error || t("somethingWentWrong");
+        // Server-side password re-check or token validation failed
+        const localeKey = PASSWORD_ERROR_LOCALE_KEYS[data.error] || RESET_TOKEN_ERROR_LOCALE_KEYS[data.error];
+        const text = localeKey ? t(localeKey) : data.error || t("somethingWentWrong");
         setMessage({ type: "error", text });
         setLoading(false);
       }

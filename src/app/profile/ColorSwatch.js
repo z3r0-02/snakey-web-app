@@ -48,6 +48,14 @@ export default function ColorSwatch({ colorId, isUnlocked, isActive, onEquip }) 
           : "none",
       }}
       onClick={() => onEquip("color", colorId)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onEquip("color", colorId);
+        }
+      }}
       title={t(`color_${colorId}`)}
     >
       {theme.pattern === "wizard" && <div className={styles.patternWizard} />}

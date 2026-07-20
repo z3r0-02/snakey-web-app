@@ -15,10 +15,6 @@
   composes: navBrand from "../../styles/nav.module.css";
 }
 
-.navLogo {
-  composes: navLogo from "../../styles/nav.module.css";
-}
-
 .navLinks {
   composes: navLinks from "../../styles/nav.module.css";
   composes: navLinksMobileWrap from "../../styles/nav.module.css";
@@ -130,9 +126,9 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
-  margin-top: 0.5rem;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  margin-top: var(--space-sm);
 }
 
 .colorSwatch {
@@ -158,8 +154,8 @@
 .titleFlex {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
 }
 
 .titlePill {
@@ -406,13 +402,13 @@
 
 /* === Country flag next to the display name === */
 .flagInline {
-  margin-left: 0.5rem;
+  margin-left: var(--space-sm);
   font-size: 1.2rem;
   vertical-align: middle;
 }
 
 .flagEmoji {
-  margin-left: 0.5rem;
+  margin-left: var(--space-sm);
   font-size: 1.2rem;
 }
 
@@ -433,7 +429,7 @@
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 0.5rem;
+  padding: var(--space-sm);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -474,15 +470,22 @@
   border-bottom: none;
 }
 
+.formError {
+  color: var(--color-error);
+  font-size: 0.85rem;
+  margin: var(--space-xs) 0 0;
+  text-align: right;
+}
+
 .editActions {
   display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
   justify-content: flex-end;
 }
 
 .cancelBtn {
-  padding: 0.5rem 1rem;
+  padding: var(--space-sm) var(--space-md);
   border: 1px solid var(--border-subtle);
   background: transparent;
   border-radius: var(--radius-sm);
@@ -492,7 +495,7 @@
 }
 
 .saveBtn {
-  padding: 0.5rem 1rem;
+  padding: var(--space-sm) var(--space-md);
   border: none;
   background: var(--text-accent);
   color: white;
@@ -507,7 +510,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-md);
 }
 
 .achHeaderTitle {
@@ -523,19 +526,19 @@
 .achScroll {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-sm);
   flex: 1;
   overflow-y: auto;
-  padding-right: 0.5rem;
+  padding-right: var(--space-sm);
   min-height: 0;
 }
 
 .achRow {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--space-xs);
   padding: 0.5rem 0.75rem;
-  background: rgba(19, 35, 48, 0.03);
+  background: var(--bg-glass);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
 }
@@ -555,7 +558,7 @@
 .achLockIcon {
   opacity: 0.8;
   flex-shrink: 0;
-  margin-left: 0.5rem;
+  margin-left: var(--space-sm);
   margin-top: 0.1rem;
 }
 
@@ -572,21 +575,21 @@
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
+  padding-bottom: var(--space-md);
+  margin-bottom: var(--space-md);
 }
 
 .colorGroups {
-  padding-bottom: 0.5rem;
+  padding-bottom: var(--space-sm);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-md);
 }
 
 .colorGridTight {
   margin-top: 0;
   padding: 0 12px;
-  gap: 0.5rem;
+  gap: var(--space-sm);
 }
 
 .titleSection {
@@ -596,7 +599,7 @@
 }
 
 .titleSectionTitle {
-  margin: 0 0 1rem;
+  margin: 0 0 var(--space-md);
 }
 
 .titleFlexStart {
@@ -669,8 +672,8 @@
   .mobileShowMoreBtn {
     display: block;
     width: 100%;
-    padding: 0.5rem;
-    margin-top: 0.5rem;
+    padding: var(--space-sm);
+    margin-top: var(--space-sm);
     background: var(--bg-hover);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);

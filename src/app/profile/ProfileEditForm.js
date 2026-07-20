@@ -10,7 +10,7 @@ import { isLettersOnly } from "@/lib/validation";
 import styles from "./profile.module.css";
 
 // Inline edit form for the profile details (gender / country / date of birth).
-export default function ProfileEditForm({ editForm, setEditForm, onSave, onCancel, loading, today }) {
+export default function ProfileEditForm({ editForm, setEditForm, onSave, onCancel, loading, today, error }) {
   const { t } = useTranslation();
 
   const GENDERS = GENDER_OPTIONS.map((o) => ({ value: o.value, label: t(o.labelKey) }));
@@ -57,6 +57,11 @@ export default function ProfileEditForm({ editForm, setEditForm, onSave, onCance
           />
         </div>
       </div>
+      {error && (
+        <p className={styles.formError} data-cy="profile-save-error" role="alert">
+          {error}
+        </p>
+      )}
       <div className={styles.editActions}>
         <button
           onClick={onCancel}

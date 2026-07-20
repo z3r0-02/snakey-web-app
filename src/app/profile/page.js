@@ -9,7 +9,7 @@ import { useTranslation } from "@/lib/LanguageContext";
 import GlobalFlags from "@/components/GlobalFlags";
 import { COUNTRY_CODES } from "@/lib/countries";
 import { ACHIEVEMENTS, THEMES } from "@/lib/achievements";
-import { GUEST_HOST_EMAIL } from "@/lib/constants";
+import { GUEST_HOST_EMAIL, MAX_ATTEMPTS } from "@/lib/constants";
 import { resolveUserId } from "@/lib/user";
 import ProfileAchievements from "./ProfileAchievements";
 import ProfileEditForm from "./ProfileEditForm";
@@ -26,6 +26,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [unlockedAchievements, setUnlockedAchievements] = useState(new Set());
   const [showAllAchievements, setShowAllAchievements] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -46,17 +47,19 @@ export default function ProfilePage() {
         setUser(u);
 
         const userId = resolveUserId(u);
-        const today = new Date().toISOString().slice(0, 10);
-        const userName = u.name || u.email;
 
         let best = 0;
         let daysPlayed = 0;
         let attemptsToday = 0;
         let rank = null;
 
+        const timeRes = await fetch("/api/time");
+        const timeData = await timeRes.json();
+        const serverToday = timeData.dateStr;
+
         const [attRes, lbRes, achRes] = await Promise.all([
-          fetch(`/api/attempts?userId=${userId}&date=${today}`),
-          fetch("/api/leaderboard"),
+          fetch(`/api/attempts?userId=${userId}&date=${serverToday}`),
+          fetch(`/api/leaderboard?userId=${encodeURIComponent(userId)}`),
           fetch(`/api/achievements?userId=${userId}`),
         ]);
 
@@ -68,12 +71,8 @@ export default function ProfilePage() {
 
         if (lbRes.ok) {
           const lbData = await lbRes.json();
-          const overall = lbData.overall || [];
-          const userScores = overall.filter((e) => e.id === u.id || e.name === userName);
-          best = userScores.length > 0 ? Math.max(...userScores.map((e) => e.score)) : 0;
-
-          const idx = overall.findIndex((e) => e.id === u.id || e.name === userName);
-          rank = idx >= 0 ? idx + 1 : null;
+          best = lbData.personalBest ?? 0;
+          rank = lbData.personalRank ?? null;
         }
 
         if (achRes.ok) {
@@ -97,11 +96,13 @@ export default function ProfilePage() {
       dob: user.dob || "",
       country: user.country || "",
     });
+    setSaveError(null);
     setIsEditing(true);
   };
 
   const handleSave = async () => {
     setLoading(true);
+    setSaveError(null);
     try {
       const res = await fetch("/api/profile", {
         method: "PUT",
@@ -118,10 +119,11 @@ export default function ProfilePage() {
         setUser(updatedUser);
         setIsEditing(false);
       } else {
-        alert(t("somethingWentWrong"));
+        setSaveError(t("somethingWentWrong"));
       }
     } catch (e) {
-      alert(t("somethingWentWrong"));
+      console.error("Profile save failed:", e);
+      setSaveError(t("somethingWentWrong"));
     } finally {
       setLoading(false);
     }
@@ -264,7 +266,7 @@ export default function ProfilePage() {
             <p className={styles.statLabel}>{t("statDaysPlayed")}</p>
           </div>
           <div className={styles.statItem}>
-            <p className={styles.statValue}>{3 - stats.attemptsToday}</p>
+            <p className={styles.statValue}>{MAX_ATTEMPTS - stats.attemptsToday}</p>
             <p className={styles.statLabel}>{t("statAttemptsLeft")}</p>
           </div>
         </div>
@@ -293,9 +295,10 @@ export default function ProfilePage() {
               editForm={editForm}
               setEditForm={setEditForm}
               onSave={handleSave}
-              onCancel={() => setIsEditing(false)}
+              onCancel={() => { setSaveError(null); setIsEditing(false); }}
               loading={loading}
               today={today}
+              error={saveError}
             />
           ) : (
             <>
